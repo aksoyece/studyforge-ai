@@ -199,7 +199,7 @@ React, kullanıcı arayüzü oluşturmak için tasarlanmış bileşen tabanlı (
 ## Önemli Başlıklar (Key Concepts)
 - **Bileşen Tabanlı Mimari (Component Architecture):** Uygulamanın her arayüz parçasının (örneğin buton, navbar) bağımsız birer yapı taşı olarak kodlanmasıdır. Kodun tekrar kullanılabilirliğini artırır.
 - **Sanal DOM (Virtual DOM):** React, gerçek DOM'u doğrudan güncellemek yerine sanal bir kopyasını günceller. Değişiklikleri karşılaştırıp (diffing) sadece değişen alanları gerçek DOM'a yansıtır, bu da hızı artırır.
-- **Hooks (Kancalar):** Fonksiyonel bileşenlerde durum (State) ve yaşam döngüsü özelliklerini (lifecycle) kullanmamızı sağlayan `useState`, `useEffect` gibi fonksiyonlardır.
+- **Hooks (Kancalar):** Fonksiyonel bileşenlerde durum (State) ve yaşam döngüsü özelliklerini (lifecycle) kullanmamızı sağlayan useState, useEffect gibi fonksiyonlardır.
 - **Vite:** Geliştirme sunucusunu native ESM (ECMAScript Modules) tabanlı başlatarak geleneksel araçlara (Webpack) kıyasla çok daha hızlı başlatan modern bir build aracıdır.
 
 ## Özet Çıkarımlar (Key Takeaways)
