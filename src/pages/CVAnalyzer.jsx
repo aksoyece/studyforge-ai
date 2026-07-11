@@ -140,8 +140,8 @@ function ProgressRing({ score, size = 120, strokeWidth = 10 }) {
   const color = score >= 75 ? '#10d9a0' : score >= 50 ? '#f59e0b' : '#f43f5e'
 
   return (
-    <div className="progress-ring-container">
-      <svg className="progress-ring-svg" width={size} height={size}>
+    <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg className="progress-ring-svg" width={size} height={size} style={{ position: 'absolute', top: 0, left: 0 }}>
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none"
           stroke="rgba(255,255,255,0.07)" strokeWidth={strokeWidth} />
         <circle className="progress-ring-circle" cx={size / 2} cy={size / 2} r={radius}
@@ -150,9 +150,9 @@ function ProgressRing({ score, size = 120, strokeWidth = 10 }) {
           strokeDashoffset={offset}
         />
       </svg>
-      <div style={{ position: 'absolute', textAlign: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.1 }}>
         <div style={{ fontFamily: 'Outfit', fontSize: '1.75rem', fontWeight: 800, color }}>{score}</div>
-        <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Match</div>
+        <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>Match</div>
       </div>
     </div>
   )
