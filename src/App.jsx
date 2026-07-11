@@ -58,7 +58,7 @@ function Navbar() {
                 border: location.pathname === '/profile' ? '1px solid var(--accent-indigo)' : '1px solid var(--border)'
               }}
             >
-              👤 Profilim
+              👤 {user.user_metadata?.full_name ? user.user_metadata.full_name.split(' ')[0] : 'Profilim'}
             </button>
             <button className="btn btn-secondary btn-sm" onClick={handleSignOut}>Çıkış</button>
           </div>

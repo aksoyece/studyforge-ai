@@ -7,6 +7,7 @@ export default function Auth() {
   const [isRegister, setIsRegister] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
   const [loading, setLoading] = useState(false)
   
   const { signIn, signUp } = useAuth()
@@ -14,6 +15,10 @@ export default function Auth() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (isRegister && !fullName.trim()) {
+      toast.error('Lütfen ad soyad girin.')
+      return
+    }
     if (!email || !password) {
       toast.error('Lütfen tüm alanları doldurun.')
       return
@@ -26,7 +31,7 @@ export default function Auth() {
     setLoading(true)
     try {
       if (isRegister) {
-        const { error } = await signUp(email, password)
+        const { error } = await signUp(email, password, fullName)
         if (error) throw error
         toast.success('Kayıt başarılı! Giriş yapabilirsiniz.')
         setIsRegister(false)
@@ -59,6 +64,20 @@ export default function Auth() {
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {isRegister && (
+              <div className="form-group">
+                <label className="form-label">Ad Soyad</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="John Doe"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
             <div className="form-group">
               <label className="form-label">E-posta Adresi</label>
               <input

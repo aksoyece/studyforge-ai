@@ -56,7 +56,9 @@ export default function Profile() {
               👤
             </div>
             <div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Profil & Dashboard</h2>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
+                {user?.user_metadata?.full_name || 'Profil & Dashboard'}
+              </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{user?.email}</p>
             </div>
           </div>
