@@ -1,9 +1,15 @@
 // Smart Mock AI responses categorized by PDF file name keywords
 
-// Helper to detect category based on file name
-function detectCategory(fileName = '') {
-  // Normalize Turkish characters
-  let name = fileName.toLowerCase()
+// Helper to detect category based on file name or object
+function detectCategory(fileParam = '') {
+  let name = '';
+  if (typeof fileParam === 'string') {
+    name = fileParam;
+  } else if (fileParam && typeof fileParam === 'object' && fileParam.name) {
+    name = fileParam.name;
+  }
+
+  name = name.toLowerCase()
     .replace(/ı/g, 'i')
     .replace(/ş/g, 's')
     .replace(/ç/g, 'c')
@@ -12,7 +18,7 @@ function detectCategory(fileName = '') {
     .replace(/ö/g, 'o');
 
   // 1. Database Check (Prioritize specific db words)
-  if (name.includes('sql') || name.includes('db') || name.includes('database') || name.includes('veritabani')) {
+  if (name.includes('sql') || name.includes('db') || name.includes('database') || name.includes('veritaban') || name.includes('veritabani')) {
     return 'database';
   }
   
@@ -26,7 +32,7 @@ function detectCategory(fileName = '') {
     return 'history';
   }
   
-  // 4. Algorithms & Data Structures Check (Strong programming vocabulary)
+  // 4. Algorithms & Data Structures Check
   if (
     name.includes('algorithm') || 
     name.includes('kod') || 
@@ -34,14 +40,14 @@ function detectCategory(fileName = '') {
     name.includes('java') || 
     name.includes('python') || 
     name.includes('oop') || 
-    name.includes('organizasyon') ||
-    name.includes('veri') || // "veri yapilari" matches here
+    name.includes('veri') || 
     name.includes('yapi') ||
     name.includes('structure') ||
     name.includes('tree') ||
     name.includes('graph') ||
-    name.includes('list') ||
-    name.includes('sort')
+    name.includes('sort') ||
+    name.includes('stack') ||
+    name.includes('queue')
   ) {
     return 'programming';
   }
