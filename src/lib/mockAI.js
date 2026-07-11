@@ -189,3 +189,51 @@ export function getMockQuiz(questionCount) {
   ]
   return allQuestions.slice(0, questionCount)
 }
+
+export function getMockSummary() {
+  return `# 📖 React & Modern Web Geliştirme Özeti
+
+## Genel Bakış (Overview)
+React, kullanıcı arayüzü oluşturmak için tasarlanmış bileşen tabanlı (component-based) popüler bir JavaScript kütüphanesidir. Modern web projelerinde yüksek performanslı ve modüler yapılar oluşturmayı sağlar. State (durum) ve props (özellikler) kavramları yardımıyla dinamik arayüzler sunar.
+
+## Önemli Başlıklar (Key Concepts)
+- **Bileşen Tabanlı Mimari (Component Architecture):** Uygulamanın her arayüz parçasının (örneğin buton, navbar) bağımsız birer yapı taşı olarak kodlanmasıdır. Kodun tekrar kullanılabilirliğini artırır.
+- **Sanal DOM (Virtual DOM):** React, gerçek DOM'u doğrudan güncellemek yerine sanal bir kopyasını günceller. Değişiklikleri karşılaştırıp (diffing) sadece değişen alanları gerçek DOM'a yansıtır, bu da hızı artırır.
+- **Hooks (Kancalar):** Fonksiyonel bileşenlerde durum (State) ve yaşam döngüsü özelliklerini (lifecycle) kullanmamızı sağlayan `useState`, `useEffect` gibi fonksiyonlardır.
+- **Vite:** Geliştirme sunucusunu native ESM (ECMAScript Modules) tabanlı başlatarak geleneksel araçlara (Webpack) kıyasla çok daha hızlı başlatan modern bir build aracıdır.
+
+## Özet Çıkarımlar (Key Takeaways)
+- Modüler bileşen yapısı sayesinde kod tabanı büyüdükçe bakım ve geliştirme kolaylaşır.
+- Sanal DOM ve verimli render süreçleri tarayıcı performansını optimize eder.
+- Hooks mimarisi sayesinde sınıf (class) yapısına ihtiyaç duymadan temiz fonksiyonlarla geliştirme yapılabilir.`
+}
+
+export function getMockFlashcards(cardCount = 6) {
+  const cards = [
+    {
+      front: 'Virtual DOM nedir ve ne işe yarar?',
+      back: 'React\'in gerçek DOM üzerinde doğrudan işlem yapmak yerine kullandığı bellek içi kopyadır. Sadece değişen düğümleri güncelleyerek tarayıcı performansını optimize eder.'
+    },
+    {
+      front: 'useState Hook\'u ne amaçla kullanılır?',
+      back: 'Fonksiyonel React bileşenlerinde dinamik verileri (state) saklamak, değiştirmek ve bileşenin yeniden çizilmesini (re-render) tetiklemek için kullanılır.'
+    },
+    {
+      front: 'useEffect Hook\'u nedir?',
+      back: 'React bileşenlerinde veri çekme, abonelik oluşturma veya DOM\'u manuel değiştirme gibi yan etkileri (side-effects) yönetmemizi sağlayan hook\'tur.'
+    },
+    {
+      front: 'React\'te Props ne anlama gelir?',
+      back: 'Üst bileşenden alt bileşene tek yönlü veri transferi yapmak için kullanılan salt okunur (read-only) özelliklerdir.'
+    },
+    {
+      front: 'SPA (Single Page Application) nedir?',
+      back: 'Sayfa yenilenmeden dinamik olarak sadece değişen içeriklerin yüklendiği ve kullanıcılara kesintisiz bir masaüstü uygulaması deneyimi sunan tek sayfalı web uygulamalarıdır.'
+    },
+    {
+      front: 'Vite\'in geleneksel araçlardan (örn. Webpack) farkı nedir?',
+      back: 'Vite, tarayıcıların sunduğu yerleşik ESM (ECMAScript Modules) desteğini kullanır. Dosyaları önceden paketlemek yerine talep anında yükleyerek anlık açılış (cold start) sağlar.'
+    }
+  ]
+  return cards.slice(0, cardCount)
+}

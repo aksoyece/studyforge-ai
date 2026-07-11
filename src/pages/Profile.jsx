@@ -141,24 +141,27 @@ export default function Profile() {
                     Henüz hiç quiz çözmediniz.
                   </div>
                 ) : (
-                  quizzes.map(item => (
-                    <div
-                      key={item.id}
-                      className={`history-item ${selectedItem?.id === item.id ? 'active' : ''}`}
-                      onClick={() => setSelectedItem(item)}
-                      style={{ borderLeft: `4px solid ${selectedItem?.id === item.id ? 'var(--accent-cyan)' : 'transparent'}` }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {item.pdf_name}
+                  quizzes.map(item => {
+                    const qList = Array.isArray(item.questions) ? item.questions : (item.questions?.qs || [])
+                    return (
+                      <div
+                        key={item.id}
+                        className={`history-item ${selectedItem?.id === item.id ? 'active' : ''}`}
+                        onClick={() => setSelectedItem(item)}
+                        style={{ borderLeft: `4px solid ${selectedItem?.id === item.id ? 'var(--accent-cyan)' : 'transparent'}` }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '0.9rem', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {item.pdf_name}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                            {new Date(item.created_at).toLocaleDateString('tr-TR')} · {qList.length} Öğe / Soru
+                          </div>
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          {new Date(item.created_at).toLocaleDateString('tr-TR')} · {item.questions?.length} Soru
-                        </div>
+                        <span className="badge badge-cyan">{item.ai_provider}</span>
                       </div>
-                      <span className="badge badge-cyan">{item.ai_provider}</span>
-                    </div>
-                  ))
+                    )
+                  })
                 )
               )}
             </div>
@@ -205,13 +208,27 @@ export default function Profile() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
                       <h3 style={{ fontSize: '1.1rem', marginBottom: '4px', wordBreak: 'break-all' }}>{selectedItem.pdf_name}</h3>
-                      <span className="badge badge-cyan">{selectedItem.questions?.length} Soru Oluşturuldu</span>
+                      <span className="badge badge-cyan">
+                        {Array.isArray(selectedItem.questions) 
+                          ? `${selectedItem.questions.length} Soru` 
+                          : `${selectedItem.questions?.qs?.length || 0} Soru & Materyal`}
+                      </span>
                     </div>
                     <hr className="divider" style={{ margin: '12px 0' }} />
                     
                     <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}>
+                      {/* Show Summary details if it exists in new schema */}
+                      {!Array.isArray(selectedItem.questions) && selectedItem.questions?.summary && (
+                        <div style={{ marginBottom: '24px' }}>
+                          <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', textTransform: 'uppercase', marginBottom: '8px' }}>Doküman Özeti</h4>
+                          <p style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--text-secondary)', whiteSpace: 'pre-line', background: 'rgba(255,255,255,0.01)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                            {selectedItem.questions.summary}
+                          </p>
+                        </div>
+                      )}
+
                       <h4 style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '12px' }}>Sorular</h4>
-                      {selectedItem.questions?.map((q, i) => (
+                      {(Array.isArray(selectedItem.questions) ? selectedItem.questions : (selectedItem.questions?.qs || [])).map((q, i) => (
                         <div key={i} style={{ marginBottom: '16px', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
                           <p style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '8px' }}>{i + 1}. {q.question}</p>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px' }}>

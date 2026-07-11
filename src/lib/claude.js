@@ -68,3 +68,32 @@ Return ONLY the JSON array, no markdown.`
   const raw = await callClaude(system, message)
   return JSON.parse(raw)
 }
+
+export async function generateSummary_Claude(pdfText) {
+  const system = `You are an expert academic assistant. Generate a beautifully structured Markdown summary of the provided text.
+Include:
+- '# [Topic Title]'
+- '## Genel Bakış (Overview)' (A paragraph)
+- '## Önemli Başlıklar (Key Concepts)' (Bullet points with bold terms and definitions)
+- '## Özet Çıkarımlar (Key Takeaways)' (3 bullet points of final conclusions)
+Do not include any extra introductory or concluding conversational text. Write in Turkish if possible.`
+
+  const message = `Summarize this text:\n\n${pdfText.slice(0, 8000)}`
+  return await callClaude(system, message)
+}
+
+export async function generateFlashcards_Claude(pdfText, cardCount = 8) {
+  const system = `You are an expert educator. Create exactly ${cardCount} study flashcards from the provided text.
+Return a JSON array with this exact structure:
+[
+  {
+    "front": "<Key term, question, or concept>",
+    "back": "<Definition, answer, or detailed explanation>"
+  }
+]
+Write in Turkish. Return ONLY the raw JSON array, no markdown wrap, no conversational text.`
+
+  const message = `Create ${cardCount} flashcards from this text:\n\n${pdfText.slice(0, 8000)}`
+  const raw = await callClaude(system, message)
+  return JSON.parse(raw)
+}

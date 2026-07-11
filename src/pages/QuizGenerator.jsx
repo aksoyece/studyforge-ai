@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
-import { generateQuiz_Claude } from '../lib/claude'
-import { generateQuiz_OpenAI } from '../lib/openai'
-import { saveQuizSession, saveQuizResult, getQuizSessions } from '../lib/supabase'
-import { getMockQuiz } from '../lib/mockAI'
+import { generateQuiz_Claude, generateSummary_Claude, generateFlashcards_Claude } from '../lib/claude'
+import { generateQuiz_OpenAI, generateSummary_OpenAI, generateFlashcards_OpenAI } from '../lib/openai'
+import { saveQuizSession, getQuizSessions } from '../lib/supabase'
+import { getMockQuiz, getMockSummary, getMockFlashcards } from '../lib/mockAI'
 import { extractTextFromPDF } from '../lib/pdfExtract'
 import { useAuth } from '../context/AuthContext'
 
@@ -98,19 +98,18 @@ function QuizQuestion({ question, index, total, onAnswer }) {
   )
 }
 
-
 // ── Score Screen ──────────────────────────────────────────────────
 function ScoreScreen({ score, total, onRetake }) {
   const pct = Math.round((score / total) * 100)
   const color = pct >= 80 ? 'var(--accent-mint)' : pct >= 60 ? 'var(--accent-amber)' : 'var(--accent-rose)'
-  const message = pct >= 80 ? '🎉 Excellent work!' : pct >= 60 ? '👍 Good effort!' : '📖 Keep studying!'
+  const message = pct >= 80 ? '🎉 Mükemmel Sonuç!' : pct >= 60 ? '👍 İyi Deneme!' : '📖 Daha Fazla Çalışmalısın!'
 
   return (
     <div className="animate-fade-up" style={{ textAlign: 'center', padding: '40px 20px' }}>
       <div style={{ fontSize: '3rem', marginBottom: '16px' }}>{message.split(' ')[0]}</div>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>{message.slice(2)}</h2>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
-        You scored {score} out of {total} questions correctly.
+        {total} sorudan {score} tanesini doğru cevapladınız.
       </p>
 
       <div style={{
@@ -123,29 +122,93 @@ function ScoreScreen({ score, total, onRetake }) {
         <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginTop: '4px' }}>/ 100</div>
         <div style={{ marginTop: '16px', fontSize: '0.8rem', color: 'var(--text-muted)',
           textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-          {pct >= 80 ? 'Mastered' : pct >= 60 ? 'Proficient' : 'Needs Review'}
+          {pct >= 80 ? 'Uzman' : pct >= 60 ? 'Yeterli' : 'Tekrar Etmeli'}
         </div>
       </div>
 
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-        <button className="btn btn-primary" onClick={onRetake}>🔄 New Quiz</button>
+        <button className="btn btn-primary" onClick={onRetake}>🔄 Yeni Çalışma</button>
       </div>
     </div>
   )
 }
 
-// ── Main Page ─────────────────────────────────────────────────────
+// ── Flashcard Study Component ─────────────────────────────────────
+function FlashcardStudy({ cards }) {
+  const [currentIdx, setCurrentIdx] = useState(0)
+  const [flipped, setFlipped] = useState(false)
+
+  if (!cards || cards.length === 0) return null
+
+  const curCard = cards[currentIdx]
+
+  return (
+    <div className="animate-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+        <span>Kart {currentIdx + 1} / {cards.length}</span>
+        <span>Çevirmek için karta tıklayın</span>
+      </div>
+
+      {/* 3D Card */}
+      <div 
+        className={`flashcard-perspective ${flipped ? 'flipped' : ''}`}
+        onClick={() => setFlipped(!flipped)}
+      >
+        <div className="flashcard-inner">
+          {/* Front */}
+          <div className="flashcard-front">
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent-indigo)', textTransform: 'uppercase', marginBottom: '16px' }}>Terim / Soru</span>
+            <p style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.6 }}>{curCard.front}</p>
+          </div>
+          {/* Back */}
+          <div className="flashcard-back">
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent-mint)', textTransform: 'uppercase', marginBottom: '16px' }}>Açıklama / Cevap</span>
+            <p style={{ fontSize: '1.05rem', fontWeight: 500, lineHeight: 1.6 }}>{curCard.back}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+        <button 
+          className="btn btn-secondary" 
+          disabled={currentIdx === 0}
+          onClick={() => { setFlipped(false); setCurrentIdx(c => c - 1); }}
+        >
+          ← Önceki
+        </button>
+        <button 
+          className="btn btn-primary" 
+          disabled={currentIdx === cards.length - 1}
+          onClick={() => { setFlipped(false); setCurrentIdx(c => c + 1); }}
+        >
+          Sonraki →
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Workspace Page ───────────────────────────────────────────
 export default function QuizGenerator() {
   const { user } = useAuth()
-  const [phase, setPhase] = useState('setup') // setup | extracting | quiz | score
+  const [phase, setPhase] = useState('setup') // setup | extracting | workspace
+  const [studyMode, setStudyMode] = useState('summary') // summary | flashcards | quiz
+  
   const [pdfFile, setPdfFile] = useState(null)
   const [pdfText, setPdfText] = useState('')
   const [questionCount, setQuestionCount] = useState(5)
   const [difficulty, setDifficulty] = useState('medium')
   const [provider, setProvider] = useState('claude')
+
+  // Generative Outputs
   const [questions, setQuestions] = useState([])
+  const [summary, setSummary] = useState('')
+  const [flashcards, setFlashcards] = useState([])
+  
   const [currentQ, setCurrentQ] = useState(0)
   const [score, setScore] = useState(0)
+  const [quizFinished, setQuizFinished] = useState(false)
   const [history, setHistory] = useState([])
   const [isDemoMode, setIsDemoMode] = useState(false)
 
@@ -171,9 +234,9 @@ export default function QuizGenerator() {
   const onDrop = useCallback(async (accepted) => {
     if (!accepted.length) return
     const file = accepted[0]
-    if (file.type !== 'application/pdf') { toast.error('Please upload a PDF file'); return }
+    if (file.type !== 'application/pdf') { toast.error('Lütfen geçerli bir PDF yükleyin'); return }
     setPdfFile(file)
-    toast.success(`"${file.name}" loaded!`)
+    toast.success(`"${file.name}" yüklendi!`)
   }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -181,71 +244,103 @@ export default function QuizGenerator() {
   })
 
   async function handleGenerate() {
-    if (!pdfFile) { toast.error('Please upload a PDF first'); return }
+    if (!pdfFile) { toast.error('Lütfen bir PDF dosyası sürükleyin.'); return }
     setPhase('extracting')
+    setIsDemoMode(false)
 
     try {
-      let qs
+      let extractedQs = []
+      let extractedSummary = ''
+      let extractedFlashcards = []
+
       if (!hasKey) {
+        // Demo Modu
         await new Promise(r => setTimeout(r, 2000))
-        qs = getMockQuiz(questionCount)
+        extractedQs = getMockQuiz(questionCount)
+        extractedSummary = getMockSummary()
+        extractedFlashcards = getMockFlashcards()
         setIsDemoMode(true)
-        toast('Running in demo mode — add an API key for real AI questions', { icon: '⚠️' })
+        toast('Demo modunda çalışıyor — Gerçek yapay zeka çıktısı için API Key ekleyin', { icon: '⚠️' })
       } else {
-        toast('Extracting PDF text...', { id: 'extract' })
+        toast('PDF metni ayrıştırılıyor...', { id: 'extract' })
         const text = await extractTextFromPDF(pdfFile)
         setPdfText(text)
-        toast.loading('Generating quiz...', { id: 'extract' })
+        
+        toast.loading('Çalışma alanınız AI ile oluşturuluyor...', { id: 'extract' })
 
         if (provider === 'claude') {
-          qs = await generateQuiz_Claude(text, questionCount, difficulty)
+          const [qs, summ, cards] = await Promise.all([
+            generateQuiz_Claude(text, questionCount, difficulty),
+            generateSummary_Claude(text),
+            generateFlashcards_Claude(text)
+          ])
+          extractedQs = qs
+          extractedSummary = summ
+          extractedFlashcards = cards
         } else {
-          qs = await generateQuiz_OpenAI(text, questionCount, difficulty)
+          const [qs, summ, cards] = await Promise.all([
+            generateQuiz_OpenAI(text, questionCount, difficulty),
+            generateSummary_OpenAI(text),
+            generateFlashcards_OpenAI(text)
+          ])
+          extractedQs = qs
+          extractedSummary = summ
+          extractedFlashcards = cards
         }
         toast.dismiss('extract')
       }
 
-      setQuestions(qs)
+      setQuestions(extractedQs)
+      setSummary(extractedSummary)
+      setFlashcards(extractedFlashcards)
+      
       setCurrentQ(0)
       setScore(0)
+      setQuizFinished(false)
 
-      // Save session
+      // Oturumu kaydet
       await saveQuizSession({
         pdf_name: pdfFile.name,
-        questions: qs,
+        questions: { qs: extractedQs, summary: extractedSummary, flashcards: extractedFlashcards },
         ai_provider: isDemoMode ? 'demo' : provider,
       })
       loadHistory()
-
-      setPhase('quiz')
+      setPhase('workspace')
+      setStudyMode('summary') // Varsayılan olarak özet sekmesini aç
     } catch (err) {
-      console.error('Quiz generation error:', err)
+      console.error('Study generation error:', err)
       toast.dismiss('extract')
-      
-      // Otomatik demo moduna geç
-      toast('API hatası alındı — Testiniz Demo modda oluşturuluyor 🔄', { icon: '⚠️', duration: 4000 })
+      toast('API hatası oluştu — Çalışma alanınız demo verisiyle hazırlanıyor 🔄', { icon: '⚠️', duration: 4000 })
       
       await new Promise(r => setTimeout(r, 1000))
       const mockQs = getMockQuiz(questionCount)
+      const mockSummary = getMockSummary()
+      const mockCards = getMockFlashcards()
+
       setQuestions(mockQs)
+      setSummary(mockSummary)
+      setFlashcards(mockCards)
+      
       setCurrentQ(0)
       setScore(0)
+      setQuizFinished(false)
       setIsDemoMode(true)
 
       await saveQuizSession({
         pdf_name: pdfFile.name,
-        questions: mockQs,
+        questions: { qs: mockQs, summary: mockSummary, flashcards: mockCards },
         ai_provider: 'demo',
       })
       loadHistory()
-      setPhase('quiz')
+      setPhase('workspace')
+      setStudyMode('summary')
     }
   }
 
   function handleAnswer(correct) {
     if (correct) setScore(s => s + 1)
     if (currentQ + 1 >= questions.length) {
-      setPhase('score')
+      setQuizFinished(true)
     } else {
       setCurrentQ(c => c + 1)
     }
@@ -255,22 +350,37 @@ export default function QuizGenerator() {
     setPhase('setup')
     setPdfFile(null)
     setQuestions([])
+    setSummary('')
+    setFlashcards([])
     setCurrentQ(0)
     setScore(0)
+    setQuizFinished(false)
     setIsDemoMode(false)
   }
 
   return (
-    <div className="page">
-      <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px', maxWidth: '760px' }}>
+    <div className="page" style={{ position: 'relative', overflow: 'hidden' }}>
+      
+      {/* Glow Blobs */}
+      <div className="glow-blob glow-blob-primary" />
+      <div className="glow-blob glow-blob-secondary" />
+
+      <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px', maxWidth: '780px', position: 'relative', zIndex: 1 }}>
+        
         {/* Header */}
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '2rem' }}>📚</span>
-            <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>PDF Quiz Generator</h1>
+            <div className="icon-container" style={{ width: '48px', height: '48px', borderRadius: '12px', color: 'var(--accent-cyan)' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+                <path d="M6 6h10" />
+                <path d="M6 10h10" />
+              </svg>
+            </div>
+            <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>AI Study Workspace</h1>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Upload any PDF and get an AI-generated multiple-choice quiz to test your knowledge.
+            Dilediğiniz PDF belgesini yükleyin; yapay zeka sizin için çalışma özeti çıkarsın, 3D interaktif çalışma kartları ve testler hazırlasın.
           </p>
         </div>
 
@@ -280,13 +390,13 @@ export default function QuizGenerator() {
             {!hasKey && (
               <div className="demo-banner">
                 <span>⚠️</span>
-                <span>No API key detected — quiz will run in <strong>demo mode</strong> with sample questions.</span>
+                <span>API Key algılanmadı — Çalışma alanı örnek bir doküman üzerinden **demo modunda** çalışacaktır.</span>
               </div>
             )}
 
             {/* AI Provider Toggle */}
             <div className="card" style={{ padding: '20px' }}>
-              <p className="section-title" style={{ marginBottom: '12px' }}>AI Provider</p>
+              <p className="section-title" style={{ marginBottom: '12px' }}>AI Altyapısı</p>
               <div className="ai-toggle">
                 <button className={`ai-toggle-btn ${provider === 'claude' ? 'active' : ''}`}
                   onClick={() => setProvider('claude')}>🤖 Claude</button>
@@ -298,42 +408,42 @@ export default function QuizGenerator() {
             {/* Dropzone */}
             <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''}`}>
               <input {...getInputProps()} />
-              <div className="dropzone-icon">{pdfFile ? '📄' : '☁️'}</div>
+              <div className="dropzone-icon" style={{ fontSize: '2.5rem' }}>{pdfFile ? '📄' : '📁'}</div>
               {pdfFile ? (
                 <>
                   <div className="dropzone-title" style={{ color: 'var(--accent-mint)' }}>
                     {pdfFile.name}
                   </div>
                   <div className="dropzone-sub">
-                    {(pdfFile.size / 1024).toFixed(1)} KB · Click or drag to replace
+                    {(pdfFile.size / 1024).toFixed(1)} KB · Değiştirmek için sürükleyin veya tıklayın
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="dropzone-title">Drop your PDF here</div>
-                  <div className="dropzone-sub">or click to browse · PDF files only</div>
+                  <div className="dropzone-title">PDF Dosyanızı Buraya Sürükleyin</div>
+                  <div className="dropzone-sub">veya taramak için tıklayın · Sadece PDF formatı</div>
                 </>
               )}
             </div>
 
             {/* Settings */}
             <div className="card">
-              <p className="section-title" style={{ marginBottom: '16px' }}>Quiz Settings</p>
+              <p className="section-title" style={{ marginBottom: '16px' }}>Üretim Seçenekleri</p>
               <div className="grid-2">
                 <div className="form-group">
-                  <label className="form-label">Number of Questions</label>
+                  <label className="form-label">Soru Sayısı (Quiz)</label>
                   <select className="form-select" value={questionCount} onChange={e => setQuestionCount(+e.target.value)}>
-                    <option value={5}>5 questions</option>
-                    <option value={10}>10 questions</option>
-                    <option value={15}>15 questions</option>
+                    <option value={5}>5 Soru</option>
+                    <option value={10}>10 Soru</option>
+                    <option value={15}>15 Soru</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Difficulty</label>
+                  <label className="form-label">Sınav Zorluğu</label>
                   <select className="form-select" value={difficulty} onChange={e => setDifficulty(e.target.value)}>
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
+                    <option value="easy">Kolay (Genel Bilgi)</option>
+                    <option value="medium">Orta (Kavramsal Anlayış)</option>
+                    <option value="hard">Zor (Analitik Çözümleme)</option>
                   </select>
                 </div>
               </div>
@@ -342,7 +452,7 @@ export default function QuizGenerator() {
             <button className="btn btn-primary btn-lg" onClick={handleGenerate}
               style={{ width: '100%', justifyContent: 'center',
                 background: 'var(--gradient-cyan)', boxShadow: '0 4px 20px rgba(6,182,212,0.3)' }}>
-              ✨ Generate Quiz
+              ✨ Workspace Oluştur
             </button>
           </div>
         )}
@@ -351,26 +461,79 @@ export default function QuizGenerator() {
         {phase === 'extracting' && (
           <div className="card loading-state">
             <div className="spinner" style={{ borderTopColor: 'var(--accent-cyan)' }} />
-            <p>Extracting PDF content & generating questions...</p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>This may take 10–20 seconds</p>
+            <p>PDF verileri çıkarılıyor ve çalışma materyalleri AI ile tasarlanıyor...</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Bu işlem 15–20 saniye sürebilir</p>
           </div>
         )}
 
-        {/* Quiz Phase */}
-        {phase === 'quiz' && questions.length > 0 && (
-          <QuizQuestion
-            key={currentQ}
-            question={questions[currentQ]}
-            index={currentQ}
-            total={questions.length}
-            onAnswer={handleAnswer}
-          />
-        )}
+        {/* Workspace Active Phase */}
+        {phase === 'workspace' && (
+          <div className="animate-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            
+            {/* Navigation Tabs */}
+            <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+              <button 
+                className="btn btn-ghost" 
+                style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: studyMode === 'summary' ? 'var(--bg-card)' : 'transparent', color: studyMode === 'summary' ? 'var(--text-primary)' : 'var(--text-secondary)', border: 'none' }}
+                onClick={() => setStudyMode('summary')}
+              >
+                📝 Akıllı Özet
+              </button>
+              <button 
+                className="btn btn-ghost" 
+                style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: studyMode === 'flashcards' ? 'var(--bg-card)' : 'transparent', color: studyMode === 'flashcards' ? 'var(--text-primary)' : 'var(--text-secondary)', border: 'none' }}
+                onClick={() => setStudyMode('flashcards')}
+              >
+                🗂️ Flashcards
+              </button>
+              <button 
+                className="btn btn-ghost" 
+                style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: studyMode === 'quiz' ? 'var(--bg-card)' : 'transparent', color: studyMode === 'quiz' ? 'var(--text-primary)' : 'var(--text-secondary)', border: 'none' }}
+                onClick={() => setStudyMode('quiz')}
+              >
+                🧠 Deneme Sınavı
+              </button>
+            </div>
 
-        {/* Score Phase */}
-        {phase === 'score' && (
-          <div className="card">
-            <ScoreScreen score={score} total={questions.length} onRetake={handleRetake} />
+            {/* Workspace View Selector */}
+            <div className="card" style={{ padding: '32px' }}>
+              
+              {/* Summary View */}
+              {studyMode === 'summary' && (
+                <div className="animate-fade" style={{ lineHeight: 1.8 }}>
+                  <div style={{ whiteSpace: 'pre-line', fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                    {summary}
+                  </div>
+                  <hr className="divider" />
+                  <button className="btn btn-secondary" onClick={handleRetake}>Yeni Workspace Aç</button>
+                </div>
+              )}
+
+              {/* Flashcards View */}
+              {studyMode === 'flashcards' && (
+                <div className="animate-fade">
+                  <FlashcardStudy cards={flashcards} />
+                </div>
+              )}
+
+              {/* Quiz View */}
+              {studyMode === 'quiz' && (
+                <div className="animate-fade">
+                  {!quizFinished ? (
+                    <QuizQuestion
+                      key={currentQ}
+                      question={questions[currentQ]}
+                      index={currentQ}
+                      total={questions.length}
+                      onAnswer={handleAnswer}
+                    />
+                  ) : (
+                    <ScoreScreen score={score} total={questions.length} onRetake={handleRetake} />
+                  )}
+                </div>
+              )}
+
+            </div>
           </div>
         )}
 
@@ -378,17 +541,27 @@ export default function QuizGenerator() {
         {phase === 'setup' && history.length > 0 && (
           <div style={{ marginTop: '40px' }}>
             <hr className="divider" />
-            <p className="section-title">Recent Quiz Sessions</p>
+            <p className="section-title">Son Çalışma Oturumlarınız</p>
             <div style={{ marginTop: '12px' }}>
               {history.map(h => (
-                <div key={h.id} className="history-item">
+                <div key={h.id} className="history-item" onClick={() => {
+                  // Geçmiş kaydı tıklandığında doğrudan yükle
+                  if (h.questions?.qs) {
+                    setQuestions(h.questions.qs)
+                    setSummary(h.questions.summary || '')
+                    setFlashcards(h.questions.flashcards || [])
+                    setPdfFile({ name: h.pdf_name })
+                    setPhase('workspace')
+                    setStudyMode('summary')
+                  }
+                }}>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{h.pdf_name}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                      {new Date(h.created_at).toLocaleDateString()} · {h.questions?.length} questions · {h.ai_provider}
+                      {new Date(h.created_at).toLocaleDateString('tr-TR')} · {h.ai_provider}
                     </div>
                   </div>
-                  <span className="badge badge-cyan">{h.questions?.length}Q</span>
+                  <span className="badge badge-cyan">İncele →</span>
                 </div>
               ))}
             </div>

@@ -49,7 +49,7 @@ function Navbar() {
       <div className="navbar-links">
         <button className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} onClick={() => navigate('/')}>Home</button>
         <button className={`nav-link ${location.pathname === '/cv' ? 'active' : ''}`} onClick={() => navigate('/cv')}>CV Analyzer</button>
-        <button className={`nav-link ${location.pathname === '/quiz' ? 'active' : ''}`} onClick={() => navigate('/quiz')}>Quiz Generator</button>
+        <button className={`nav-link ${location.pathname === '/quiz' ? 'active' : ''}`} onClick={() => navigate('/quiz')}>Study Workspace</button>
         
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
