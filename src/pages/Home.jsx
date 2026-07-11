@@ -27,14 +27,14 @@ const features = [
         <path d="M6 14h10" />
       </svg>
     ),
-    title: 'PDF Quiz Oluşturucu',
-    description: 'Ders kitaplarınızı, notlarınızı veya PDF belgelerinizi sürükleyip bırakın. AI, içeriğinizden anında çözümlü ve çoktan seçmeli sınavlar üretsin.',
+    title: 'AI Study Workspace',
+    description: 'PDF belgelerinizi yükleyin; yapay zeka sizin için akıllı özetler çıkarsın, 3D çalışma kartları (Flashcards) ve çözümlü testler hazırlasın.',
     path: '/quiz',
     gradient: 'var(--gradient-cyan)',
     glow: 'rgba(6,182,212,0.3)',
     badge: 'Claude / GPT-4o',
     badgeClass: 'badge-cyan',
-    tags: ['Çözümlü Testler', 'Zorluk Derecesi', 'Akıllı Çözümleme', 'Gelişim Takibi'],
+    tags: ['Akıllı Özet', '3D Flashcards', 'Çözümlü Testler', 'Zorluk Derecesi'],
   },
 ]
 
@@ -129,7 +129,7 @@ export default function Home() {
               🎯 CV Analizi Yap
             </button>
             <button className="btn btn-secondary btn-lg" style={{ borderColor: 'var(--border-hover)' }} onClick={() => navigate('/quiz')}>
-              📚 Quiz Oluştur
+              📚 Study Workspace
             </button>
           </div>
 
