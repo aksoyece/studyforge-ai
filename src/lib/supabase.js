@@ -58,10 +58,25 @@ export async function getQuizSessions() {
 }
 
 export async function saveQuizResult(data) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return null
+
   const { data: result, error } = await supabase
     .from('quiz_results')
-    .insert([data])
+    .insert([{ ...data, user_id: session.user.id }])
     .select()
   if (error) console.error('Supabase error:', error)
   return result
+}
+
+export async function getQuizResults() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return []
+
+  const { data, error } = await supabase
+    .from('quiz_results')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) console.error('Supabase error:', error)
+  return data || []
 }

@@ -97,3 +97,39 @@ Write in Turkish. Return ONLY the raw JSON array, no markdown wrap, no conversat
   const raw = await callClaude(system, message)
   return JSON.parse(raw)
 }
+
+export async function analyzeWeaknesses_Claude(wrongQuestions) {
+  const system = `You are an AI Study Coach. Analyze the list of questions the student got wrong and output a JSON array of the top 3-4 weak topics.
+Structure:
+[
+  {
+    "topic": "<Konu Başlığı, örn: React Hooks veya Veritabanı Normalizasyonu>",
+    "percentage": <Hata oranı tahmini, örn: 80 veya 60>,
+    "recommendation": "<Konuyu geliştirmek için 1 cümlelik tavsiye>"
+  }
+]
+Write in Turkish. Return ONLY raw JSON array, no markdown.`
+
+  const message = `Here are the questions the user failed:\n\n${JSON.stringify(wrongQuestions)}`
+  const raw = await callClaude(system, message)
+  return JSON.parse(raw)
+}
+
+export async function generateRecoveryQuiz_Claude(weakTopics) {
+  const system = `You are an expert educator. Create a custom 5-question recovery multiple-choice quiz targeting these weak topics: ${JSON.stringify(weakTopics)}.
+Return a JSON array with this exact structure:
+[
+  {
+    "id": 1,
+    "question": "<question text>",
+    "options": ["A) <option>", "B) <option>", "C) <option>", "D) <option>"],
+    "correctIndex": <0-3>,
+    "explanation": "<why this is correct, focusing on teaching the concept>"
+  }
+]
+Write in Turkish. Return ONLY the JSON array, no markdown.`
+
+  const message = `Generate 5 high-quality recovery questions.`
+  const raw = await callClaude(system, message)
+  return JSON.parse(raw)
+}

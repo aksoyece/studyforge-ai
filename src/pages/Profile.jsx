@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getAnalyses, getQuizSessions } from '../lib/supabase'
+import { getAnalyses, getQuizSessions, getQuizResults } from '../lib/supabase'
+import { analyzeWeaknesses_Claude } from '../lib/claude'
+import { analyzeWeaknesses_OpenAI } from '../lib/openai'
+import { getMockWeaknessAnalysis } from '../lib/mockAI'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
 // Simple regex markdown parser to avoid external packages
@@ -32,9 +36,12 @@ function renderMarkdown(md) {
 
 export default function Profile() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('cv') // cv | quiz
   const [analyses, setAnalyses] = useState([])
   const [quizzes, setQuizzes] = useState([])
+  const [weaknesses, setWeaknesses] = useState([])
+  const [analyzingWeaknesses, setAnalyzingWeaknesses] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedItem, setSelectedItem] = useState(null) // Modalda gösterilecek detaylı öğe
 
@@ -47,12 +54,47 @@ export default function Profile() {
   async function loadUserData() {
     setLoading(true)
     try {
-      const [analysesData, quizzesData] = await Promise.all([
+      const [analysesData, quizzesData, resultsData] = await Promise.all([
         getAnalyses(),
-        getQuizSessions()
+        getQuizSessions(),
+        getQuizResults()
       ])
       setAnalyses(analysesData)
       setQuizzes(quizzesData)
+
+      // Get all wrong questions across all quiz results
+      const allWrongQs = resultsData.reduce((acc, curr) => {
+        if (curr.wrong_questions && Array.isArray(curr.wrong_questions)) {
+          acc.push(...curr.wrong_questions)
+        }
+        return acc
+      }, [])
+
+      if (allWrongQs.length > 0) {
+        setAnalyzingWeaknesses(true)
+        const CLAUDE_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
+        const OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY
+        const hasClaude = CLAUDE_KEY && CLAUDE_KEY !== 'your_claude_api_key_here'
+        const hasOpenAI = OPENAI_KEY && OPENAI_KEY !== 'your_openai_api_key_here'
+
+        try {
+          let analysis = []
+          if (hasClaude) {
+            analysis = await analyzeWeaknesses_Claude(allWrongQs.slice(0, 15))
+          } else if (hasOpenAI) {
+            analysis = await analyzeWeaknesses_OpenAI(allWrongQs.slice(0, 15))
+          } else {
+            // Fallback mock
+            analysis = getMockWeaknessAnalysis()
+          }
+          setWeaknesses(analysis)
+        } catch (err) {
+          console.error('Weakness analysis error:', err)
+          setWeaknesses(getMockWeaknessAnalysis())
+        } finally {
+          setAnalyzingWeaknesses(false)
+        }
+      }
     } catch (err) {
       console.error(err)
       toast.error('Veriler yüklenirken bir hata oluştu.')
@@ -101,6 +143,65 @@ export default function Profile() {
             </div>
           </div>
         </div>
+
+        {/* AI Weakness & Recovery Card */}
+        {weaknesses.length > 0 && (
+          <div className="card animate-fade-up" style={{
+            marginBottom: '32px',
+            border: '1px solid rgba(99,102,241,0.2)',
+            background: 'linear-gradient(180deg, rgba(13,17,32,0.8) 0%, rgba(9,11,20,0.9) 100%)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '1.25rem' }}>🧠</span>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>AI Kişiselleştirilmiş Gelişim Raporu</h3>
+            </div>
+            
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.6 }}>
+              Yapay zeka çözdüğünüz tüm quizlerdeki yanlış cevaplarınızı analiz etti. İşte en çok zorlandığınız konu başlıkları ve telafi önerileri:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+              {weaknesses.map((w, idx) => (
+                <div key={idx} style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-primary)' }}>{w.topic}</span>
+                    <span style={{ color: w.percentage >= 70 ? 'var(--accent-rose)' : 'var(--accent-amber)' }}>
+                      Hata Oranı: %{w.percentage}
+                    </span>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', marginBottom: '12px', overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${w.percentage}%`,
+                      height: '100%',
+                      background: w.percentage >= 70 ? 'var(--gradient-rose)' : 'var(--gradient-cyan)',
+                      borderRadius: '3px'
+                    }} />
+                  </div>
+
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    💡 <strong>Öneri:</strong> {w.recommendation}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button 
+                className="btn btn-primary"
+                onClick={() => navigate('/recovery', { state: { weakTopics: weaknesses.map(w => w.topic) } })}
+                style={{
+                  background: 'var(--gradient-rose)',
+                  boxShadow: '0 4px 20px rgba(244,63,94,0.3)',
+                  padding: '12px 28px'
+                }}
+              >
+                🔥 AI Kurtarma Testi Başlat (Eksiklerini Kapat)
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Tab Buttons */}
         <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>

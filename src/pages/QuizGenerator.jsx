@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
 import { generateQuiz_Claude, generateSummary_Claude, generateFlashcards_Claude } from '../lib/claude'
 import { generateQuiz_OpenAI, generateSummary_OpenAI, generateFlashcards_OpenAI } from '../lib/openai'
-import { saveQuizSession, getQuizSessions } from '../lib/supabase'
+import { saveQuizSession, getQuizSessions, saveQuizResult } from '../lib/supabase'
 import { getMockQuiz, getMockSummary, getMockFlashcards } from '../lib/mockAI'
 import { extractTextFromPDF } from '../lib/pdfExtract'
 import { useAuth } from '../context/AuthContext'
@@ -114,7 +114,7 @@ function QuizQuestion({ question, index, total, onAnswer }) {
 
           <button
             className="btn btn-primary"
-            onClick={() => onAnswer(selected === question.correctIndex)}
+            onClick={() => onAnswer(selected === question.correctIndex, question)}
             style={{ width: '100%', justifyContent: 'center' }}
           >
             {isLast ? '🏁 Sonuçları Gör' : 'Sonraki Soru →'}
@@ -232,6 +232,7 @@ export default function QuizGenerator() {
   const [questions, setQuestions] = useState([])
   const [summary, setSummary] = useState('')
   const [flashcards, setFlashcards] = useState([])
+  const [wrongQuestions, setWrongQuestions] = useState([])
   
   const [currentQ, setCurrentQ] = useState(0)
   const [score, setScore] = useState(0)
@@ -364,10 +365,29 @@ export default function QuizGenerator() {
     }
   }
 
-  function handleAnswer(correct) {
-    if (correct) setScore(s => s + 1)
+  async function handleAnswer(correct, questionObj) {
+    let newWrong = [...wrongQuestions]
+    if (correct) {
+      setScore(s => s + 1)
+    } else if (questionObj) {
+      newWrong.push({
+        question: questionObj.question,
+        explanation: questionObj.explanation,
+        correctOption: questionObj.options[questionObj.correctIndex]
+      })
+      setWrongQuestions(newWrong)
+    }
+
     if (currentQ + 1 >= questions.length) {
       setQuizFinished(true)
+      // Save quiz results (wrong questions and score metadata)
+      await saveQuizResult({
+        pdf_name: pdfFile?.name || 'Untitled Document',
+        score: correct ? score + 1 : score,
+        total_questions: questions.length,
+        wrong_questions: newWrong,
+        ai_provider: isDemoMode ? 'demo' : provider
+      })
     } else {
       setCurrentQ(c => c + 1)
     }
@@ -379,6 +399,7 @@ export default function QuizGenerator() {
     setQuestions([])
     setSummary('')
     setFlashcards([])
+    setWrongQuestions([])
     setCurrentQ(0)
     setScore(0)
     setQuizFinished(false)

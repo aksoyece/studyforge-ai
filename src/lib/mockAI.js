@@ -237,3 +237,88 @@ export function getMockFlashcards(cardCount = 6) {
   ]
   return cards.slice(0, cardCount)
 }
+
+export function getMockWeaknessAnalysis() {
+  return [
+    {
+      topic: 'React Lifecycle & Hooks (useEffect)',
+      percentage: 80,
+      recommendation: 'Yan etkileri (side-effects) yöneten useEffect hookunun dependency array mantığını tekrar gözden geçirin.'
+    },
+    {
+      topic: 'Virtual DOM & Rendering Processes',
+      percentage: 60,
+      recommendation: 'Reactin sanal DOM güncelleme ve diffing algoritmalarını inceleyin.'
+    },
+    {
+      topic: 'State Management (useState)',
+      percentage: 40,
+      recommendation: 'State güncellemelerinin asenkron doğasını ve callback kullanımını pekiştirin.'
+    }
+  ]
+}
+
+export function getMockRecoveryQuiz() {
+  return [
+    {
+      id: 1,
+      question: 'useEffect hookunda ikinci parametre olarak boş dizi ([]) verilmesi neyi sağlar?',
+      options: [
+        'A) Etkinin her renderda çalışmasını',
+        'B) Etkinin sadece bileşen ekrana yüklendiğinde (mount) bir kez çalışmasını',
+        'C) Etkinin hiç çalışmamasını',
+        'D) Bileşenin hafızada tutulmasını'
+      ],
+      correctIndex: 1,
+      explanation: 'Dependency array (bağımlılık dizisi) boş bırakıldığında, useEffect içindeki kod sadece component mount edildiğinde bir kez çalışır.'
+    },
+    {
+      id: 2,
+      question: 'Aşağıdakilerden hangisi bir yan etki (side-effect) örneği değildir?',
+      options: [
+        'A) API üzerinden veri çekme',
+        'B) setInterval ile bir zamanlayıcı başlatma',
+        'C) Props olarak gelen bir sayıyı ekrana yazdırma',
+        'D) Tarayıcı başlığını (document.title) değiştirme'
+      ],
+      correctIndex: 2,
+      explanation: 'Props verisini salt ekrana yazdırma işlemi saf bir render işlemidir ve yan etki sayılmaz.'
+    },
+    {
+      id: 3,
+      question: 'Reactte state güncellemeleri hakkında hangisi doğrudur?',
+      options: [
+        'A) State güncellemeleri senkrondur',
+        'B) State doğrudan atanarak (state = value) güncellenmelidir',
+        'C) State güncellemeleri sıraya alınır (asenkron çalışır)',
+        'D) State güncellendiğinde component tekrar çizilmez'
+      ],
+      correctIndex: 2,
+      explanation: 'React performans nedeniyle state güncellemelerini toplu yapar (batching) ve asenkron olarak çalıştırır.'
+    },
+    {
+      id: 4,
+      question: 'Sanal DOM (Virtual DOM) neye katkı sağlar?',
+      options: [
+        'A) Web sitelerinin SEO puanını artırır',
+        'B) Sadece CSS yüklemelerini hızlandırır',
+        'C) Doğrudan DOM müdahalelerini önleyerek sadece değişen parçaların render edilmesini sağlar',
+        'D) Sunucu maliyetini azaltır'
+      ],
+      correctIndex: 3,
+      explanation: 'Sanal DOM, gerçek DOM üzerinde en az değişiklikle (re-flow / re-paint süreçlerini azaltarak) işlem yapmayı sağlayıp hızı artırır.'
+    },
+    {
+      id: 5,
+      question: 'useEffect temizleme (cleanup) fonksiyonu ne zaman çalışır?',
+      options: [
+        'A) Component ilk yüklendiğinde',
+        'B) Her render öncesinde ve component ekrandan kaldırılmadan (unmount) hemen önce',
+        'C) Sadece hata oluştuğunda',
+        'D) Sayfa yenilendiğinde'
+      ],
+      correctIndex: 1,
+      explanation: 'useEffect içerisinden dönülen fonksiyon, bağımlılıklar değişip efekt yeniden tetiklenmeden önce ve bileşen yok edilmeden hemen önce temizlik için çalıştırılır.'
+    }
+  ]
+}

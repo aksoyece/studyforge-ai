@@ -5,6 +5,7 @@ import CVAnalyzer from './pages/CVAnalyzer'
 import QuizGenerator from './pages/QuizGenerator'
 import Auth from './pages/Auth'
 import Profile from './pages/Profile'
+import RecoveryWorkspace from './pages/RecoveryWorkspace'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import './index.css'
 
@@ -105,6 +106,7 @@ export default function App() {
           <Route path="/cv" element={<ProtectedRoute><CVAnalyzer /></ProtectedRoute>} />
           <Route path="/quiz" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/recovery" element={<ProtectedRoute><RecoveryWorkspace /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
