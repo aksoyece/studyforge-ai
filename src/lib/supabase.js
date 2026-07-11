@@ -7,15 +7,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // CV Analyses
 export async function saveAnalysis(data) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return null
+
   const { data: result, error } = await supabase
     .from('cv_analyses')
-    .insert([data])
+    .insert([{ ...data, user_id: session.user.id }])
     .select()
   if (error) console.error('Supabase error:', error)
   return result
 }
 
 export async function getAnalyses() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return []
+
   const { data, error } = await supabase
     .from('cv_analyses')
     .select('*')
@@ -27,15 +33,21 @@ export async function getAnalyses() {
 
 // Quiz Sessions
 export async function saveQuizSession(data) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return null
+
   const { data: result, error } = await supabase
     .from('quiz_sessions')
-    .insert([data])
+    .insert([{ ...data, user_id: session.user.id }])
     .select()
   if (error) console.error('Supabase error:', error)
   return result
 }
 
 export async function getQuizSessions() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return []
+
   const { data, error } = await supabase
     .from('quiz_sessions')
     .select('*')

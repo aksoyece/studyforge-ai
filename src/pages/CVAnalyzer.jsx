@@ -6,6 +6,7 @@ import { analyzeCV_OpenAI } from '../lib/openai'
 import { saveAnalysis, getAnalyses } from '../lib/supabase'
 import { getMockCVAnalysis } from '../lib/mockAI'
 import { extractTextFromPDF } from '../lib/pdfExtract'
+import { useAuth } from '../context/AuthContext'
 
 // Extract text from Word (.docx)
 async function extractFromWord(file) {
@@ -270,6 +271,7 @@ function ResultDashboard({ result, provider }) {
 
 // ── Main Page ─────────────────────────────────────────────────────
 export default function CVAnalyzer() {
+  const { user } = useAuth()
   const [cvText, setCvText] = useState('')
   const [jobTitle, setJobTitle] = useState('')
   const [jobDesc, setJobDesc] = useState('')
@@ -286,8 +288,12 @@ export default function CVAnalyzer() {
     : (OPENAI_KEY && OPENAI_KEY !== 'your_openai_api_key_here')
 
   useEffect(() => {
-    loadHistory()
-  }, [])
+    if (user) {
+      loadHistory()
+    } else {
+      setHistory([])
+    }
+  }, [user])
 
   async function loadHistory() {
     const data = await getAnalyses()

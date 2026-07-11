@@ -6,6 +6,7 @@ import { generateQuiz_OpenAI } from '../lib/openai'
 import { saveQuizSession, saveQuizResult, getQuizSessions } from '../lib/supabase'
 import { getMockQuiz } from '../lib/mockAI'
 import { extractTextFromPDF } from '../lib/pdfExtract'
+import { useAuth } from '../context/AuthContext'
 
 // ── Quiz Question Component ───────────────────────────────────────
 function QuizQuestion({ question, index, total, onAnswer }) {
@@ -135,6 +136,7 @@ function ScoreScreen({ score, total, onRetake }) {
 
 // ── Main Page ─────────────────────────────────────────────────────
 export default function QuizGenerator() {
+  const { user } = useAuth()
   const [phase, setPhase] = useState('setup') // setup | extracting | quiz | score
   const [pdfFile, setPdfFile] = useState(null)
   const [pdfText, setPdfText] = useState('')
@@ -153,7 +155,13 @@ export default function QuizGenerator() {
     ? (CLAUDE_KEY && CLAUDE_KEY !== 'your_claude_api_key_here')
     : (OPENAI_KEY && OPENAI_KEY !== 'your_openai_api_key_here')
 
-  useEffect(() => { loadHistory() }, [])
+  useEffect(() => {
+    if (user) {
+      loadHistory()
+    } else {
+      setHistory([])
+    }
+  }, [user])
 
   async function loadHistory() {
     const data = await getQuizSessions()
