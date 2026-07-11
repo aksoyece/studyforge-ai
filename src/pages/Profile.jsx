@@ -50,7 +50,7 @@ export default function Profile() {
             <div style={{
               width: '56px', height: '56px', borderRadius: '50%',
               background: 'var(--gradient-primary)',
-              display: 'flex', alignItems: 'center', justifycontent: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '1.5rem', fontWeight: 'bold'
             }}>
               👤
