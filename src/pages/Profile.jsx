@@ -3,6 +3,33 @@ import { useAuth } from '../context/AuthContext'
 import { getAnalyses, getQuizSessions } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
+// Simple regex markdown parser to avoid external packages
+function renderMarkdown(md) {
+  if (!md) return ''
+  let html = md
+    // Escape HTML tags to prevent XSS
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    
+    // Headers
+    .replace(/^#\s+(.+)$/gm, '<h1 style="font-size: 1.3rem; font-weight: 800; margin: 16px 0 8px 0; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">$1</h1>')
+    .replace(/^##\s+(.+)$/gm, '<h2 style="font-size: 1.1rem; font-weight: 700; margin: 14px 0 6px 0; color: var(--accent-cyan); border-bottom: 1px solid var(--border); padding-bottom: 4px;">$1</h2>')
+    .replace(/^###\s+(.+)$/gm, '<h3 style="font-size: 1.0rem; font-weight: 600; margin: 12px 0 6px 0; color: var(--text-primary);">$1</h3>')
+    
+    // Bold text
+    .replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-primary); font-weight: 750;">$1</strong>')
+    
+    // Bullet lists (ensure clean items inside lists)
+    .replace(/^\s*-\s+(.+)$/gm, '<li style="margin-left: 16px; list-style-type: disc; margin-bottom: 6px; color: var(--text-secondary);">$1</li>')
+    
+    // Paragraph spacing (simple line breaks to double line breaks)
+    .replace(/\n\n/g, '<div style="margin-bottom: 12px;"></div>')
+    .replace(/\n/g, '<br/>')
+
+  return html
+}
+
 export default function Profile() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('cv') // cv | quiz
@@ -221,9 +248,10 @@ export default function Profile() {
                       {!Array.isArray(selectedItem.questions) && selectedItem.questions?.summary && (
                         <div style={{ marginBottom: '24px' }}>
                           <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', textTransform: 'uppercase', marginBottom: '8px' }}>Doküman Özeti</h4>
-                          <p style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--text-secondary)', whiteSpace: 'pre-line', background: 'rgba(255,255,255,0.01)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                            {selectedItem.questions.summary}
-                          </p>
+                          <div 
+                            style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.01)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}
+                            dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedItem.questions.summary) }}
+                          />
                         </div>
                       )}
 

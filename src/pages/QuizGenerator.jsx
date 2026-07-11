@@ -8,6 +8,33 @@ import { getMockQuiz, getMockSummary, getMockFlashcards } from '../lib/mockAI'
 import { extractTextFromPDF } from '../lib/pdfExtract'
 import { useAuth } from '../context/AuthContext'
 
+// Simple regex markdown parser to avoid external packages
+function renderMarkdown(md) {
+  if (!md) return ''
+  let html = md
+    // Escape HTML tags to prevent XSS
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    
+    // Headers
+    .replace(/^#\s+(.+)$/gm, '<h1 style="font-size: 1.6rem; font-weight: 800; margin: 24px 0 12px 0; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">$1</h1>')
+    .replace(/^##\s+(.+)$/gm, '<h2 style="font-size: 1.25rem; font-weight: 700; margin: 20px 0 10px 0; color: var(--accent-cyan); border-bottom: 1px solid var(--border); padding-bottom: 6px;">$1</h2>')
+    .replace(/^###\s+(.+)$/gm, '<h3 style="font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: var(--text-primary);">$1</h3>')
+    
+    // Bold text
+    .replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-primary); font-weight: 750;">$1</strong>')
+    
+    // Bullet lists (ensure clean items inside lists)
+    .replace(/^\s*-\s+(.+)$/gm, '<li style="margin-left: 20px; list-style-type: disc; margin-bottom: 8px; color: var(--text-secondary);">$1</li>')
+    
+    // Paragraph spacing (simple line breaks to double line breaks)
+    .replace(/\n\n/g, '<div style="margin-bottom: 16px;"></div>')
+    .replace(/\n/g, '<br/>')
+
+  return html
+}
+
 // ── Quiz Question Component ───────────────────────────────────────
 function QuizQuestion({ question, index, total, onAnswer }) {
   const [selected, setSelected] = useState(null)
@@ -501,10 +528,12 @@ export default function QuizGenerator() {
               {/* Summary View */}
               {studyMode === 'summary' && (
                 <div className="animate-fade" style={{ lineHeight: 1.8 }}>
-                  <div style={{ whiteSpace: 'pre-line', fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                    {summary}
-                  </div>
-                  <hr className="divider" />
+                  <div 
+                    className="markdown-summary"
+                    style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(summary) }}
+                  />
+                  <hr className="divider" style={{ margin: '24px 0' }} />
                   <button className="btn btn-secondary" onClick={handleRetake}>Yeni Workspace Aç</button>
                 </div>
               )}
