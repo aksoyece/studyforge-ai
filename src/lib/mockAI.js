@@ -1,0 +1,191 @@
+// Mock AI responses for demo mode (when no API key is configured)
+
+export function getMockCVAnalysis(jobTitle) {
+  return {
+    matchScore: 72,
+    summary: `Your profile shows solid foundational skills relevant to the ${jobTitle} role. You demonstrate strong technical capabilities, but there are key areas where targeted improvements could significantly boost your application's competitiveness.`,
+    strengths: [
+      'Strong technical foundation with relevant programming languages',
+      'Demonstrated project experience with real-world applications',
+      'Clear educational background aligned with role requirements',
+    ],
+    gaps: [
+      'Limited professional work experience in a corporate environment',
+      'Missing certifications commonly expected for this role',
+      'Portfolio lacks examples of large-scale collaborative projects',
+    ],
+    missingKeywords: ['Agile/Scrum', 'CI/CD pipelines', 'Docker', 'REST API design', 'TypeScript'],
+    suggestions: [
+      'Add quantifiable achievements to each experience bullet (e.g., "reduced load time by 40%")',
+      'Include a dedicated Skills section with the exact keywords from the job description',
+      'Add GitHub links and live demo URLs to showcase your projects',
+    ],
+    coverLetterOpening: `I am excited to apply for the ${jobTitle} position, as it perfectly aligns with my passion for building impactful software solutions. Through my academic projects and hands-on experience, I have developed a strong foundation in the core technologies your team relies on. I am eager to bring my problem-solving mindset and collaborative spirit to your organization.`,
+  }
+}
+
+export function getMockQuiz(questionCount) {
+  const allQuestions = [
+    {
+      id: 1,
+      question: 'What is the primary purpose of React hooks?',
+      options: [
+        'A) To replace class components with functional equivalents',
+        'B) To add state and lifecycle features to function components',
+        'C) To improve application performance automatically',
+        'D) To enable server-side rendering',
+      ],
+      correctIndex: 1,
+      explanation: 'React hooks allow function components to use state and other React features that were previously only available in class components.',
+    },
+    {
+      id: 2,
+      question: 'Which HTTP method is typically used to update an existing resource?',
+      options: ['A) GET', 'B) POST', 'C) PUT', 'D) DELETE'],
+      correctIndex: 2,
+      explanation: 'PUT is used to update or replace an existing resource at a specified URL.',
+    },
+    {
+      id: 3,
+      question: 'What does SQL stand for?',
+      options: [
+        'A) Structured Query Language',
+        'B) Simple Query Logic',
+        'C) Standard Question Library',
+        'D) Secure Query Layer',
+      ],
+      correctIndex: 0,
+      explanation: 'SQL stands for Structured Query Language, used to manage and manipulate relational databases.',
+    },
+    {
+      id: 4,
+      question: 'What is a primary key in a database?',
+      options: [
+        'A) The first column in every table',
+        'B) A unique identifier for each row in a table',
+        'C) The most important data field',
+        'D) A foreign reference to another table',
+      ],
+      correctIndex: 1,
+      explanation: 'A primary key uniquely identifies each record in a database table and cannot contain NULL values.',
+    },
+    {
+      id: 5,
+      question: 'Which concept describes keeping related code together?',
+      options: ['A) Abstraction', 'B) Polymorphism', 'C) Encapsulation', 'D) Inheritance'],
+      correctIndex: 2,
+      explanation: 'Encapsulation bundles data and methods that operate on that data within one unit, hiding internal implementation details.',
+    },
+    {
+      id: 6,
+      question: 'What is the time complexity of binary search?',
+      options: ['A) O(n)', 'B) O(n²)', 'C) O(log n)', 'D) O(1)'],
+      correctIndex: 2,
+      explanation: 'Binary search repeatedly divides the search space in half, resulting in O(log n) time complexity.',
+    },
+    {
+      id: 7,
+      question: 'What does API stand for?',
+      options: [
+        'A) Application Programming Interface',
+        'B) Automated Process Integration',
+        'C) Advanced Protocol Interface',
+        'D) Application Process Index',
+      ],
+      correctIndex: 0,
+      explanation: 'API stands for Application Programming Interface — a set of rules that allow different software applications to communicate.',
+    },
+    {
+      id: 8,
+      question: 'Which of the following is NOT a JavaScript data type?',
+      options: ['A) undefined', 'B) boolean', 'C) character', 'D) symbol'],
+      correctIndex: 2,
+      explanation: "JavaScript doesn't have a 'character' type. Single characters are simply strings of length 1.",
+    },
+    {
+      id: 9,
+      question: 'What is version control primarily used for?',
+      options: [
+        'A) Speeding up code execution',
+        'B) Tracking changes to code over time',
+        'C) Compiling source code',
+        'D) Managing server deployments',
+      ],
+      correctIndex: 1,
+      explanation: 'Version control systems like Git track changes to files over time, allowing collaboration and history management.',
+    },
+    {
+      id: 10,
+      question: 'In CSS, what does the "cascading" in Cascading Style Sheets refer to?',
+      options: [
+        'A) Animations that flow downward',
+        'B) The way styles are inherited and prioritized',
+        'C) A waterfall layout pattern',
+        'D) Responsive breakpoints',
+      ],
+      correctIndex: 1,
+      explanation: 'Cascading refers to the priority scheme that determines which style rules apply when multiple rules target the same element.',
+    },
+    {
+      id: 11,
+      question: 'What is the main advantage of using async/await in JavaScript?',
+      options: [
+        'A) It makes code run faster',
+        'B) It enables parallel processing',
+        'C) It makes asynchronous code look synchronous and easier to read',
+        'D) It removes the need for error handling',
+      ],
+      correctIndex: 2,
+      explanation: 'async/await provides cleaner syntax for working with Promises, making asynchronous code easier to write and understand.',
+    },
+    {
+      id: 12,
+      question: 'What is a REST API?',
+      options: [
+        'A) A database query language',
+        'B) An architectural style for distributed systems using HTTP',
+        'C) A JavaScript framework',
+        'D) A type of database',
+      ],
+      correctIndex: 1,
+      explanation: 'REST (Representational State Transfer) is an architectural style that uses HTTP methods to interact with resources.',
+    },
+    {
+      id: 13,
+      question: 'Which Git command creates a new branch?',
+      options: [
+        'A) git new branch-name',
+        'B) git branch branch-name',
+        'C) git create branch-name',
+        'D) git make branch-name',
+      ],
+      correctIndex: 1,
+      explanation: 'The "git branch" command creates a new branch. Use "git checkout -b" to create and switch to it immediately.',
+    },
+    {
+      id: 14,
+      question: 'What is the purpose of a foreign key?',
+      options: [
+        'A) To encrypt sensitive data',
+        'B) To establish a link between two tables',
+        'C) To speed up database queries',
+        'D) To store unique identifiers',
+      ],
+      correctIndex: 1,
+      explanation: 'A foreign key creates a relationship between two tables by referencing the primary key of another table.',
+    },
+    {
+      id: 15,
+      question: 'What does "responsive design" mean in web development?',
+      options: [
+        'A) Fast loading times',
+        'B) Websites that respond to user clicks immediately',
+        'C) Layouts that adapt to different screen sizes',
+        'D) Server-side rendering for quick responses',
+      ],
+      correctIndex: 2,
+      explanation: 'Responsive design ensures a website looks and works well on all devices by adapting the layout to different screen sizes.',
+    },
+  ]
+  return allQuestions.slice(0, questionCount)
+}
