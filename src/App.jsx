@@ -39,7 +39,11 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-        <div className="logo-icon">⚡</div>
+        <div className="logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+        </div>
         <span>StudyForge <span style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AI</span></span>
       </div>
       <div className="navbar-links">
