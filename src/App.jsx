@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import CVAnalyzer from './pages/CVAnalyzer'
 import QuizGenerator from './pages/QuizGenerator'
 import Auth from './pages/Auth'
+import Profile from './pages/Profile'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import './index.css'
 
@@ -48,8 +49,20 @@ function Navbar() {
         
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              👤 {user.email}
+            <span 
+              onClick={() => navigate('/profile')}
+              style={{ 
+                fontSize: '0.8rem', 
+                color: location.pathname === '/profile' ? 'var(--accent-indigo)' : 'var(--text-secondary)', 
+                maxWidth: '120px', 
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis', 
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                fontWeight: location.pathname === '/profile' ? 600 : 400
+              }}
+            >
+              👤 Profilim
             </span>
             <button className="btn btn-secondary btn-sm" onClick={handleSignOut}>Çıkış</button>
           </div>
@@ -84,6 +97,7 @@ export default function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/cv" element={<ProtectedRoute><CVAnalyzer /></ProtectedRoute>} />
           <Route path="/quiz" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
