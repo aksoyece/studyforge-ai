@@ -49,21 +49,17 @@ function Navbar() {
         
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
-            <span 
+            <button 
               onClick={() => navigate('/profile')}
-              style={{ 
-                fontSize: '0.8rem', 
-                color: location.pathname === '/profile' ? 'var(--accent-indigo)' : 'var(--text-secondary)', 
-                maxWidth: '120px', 
-                overflow: 'hidden', 
-                textOverflow: 'ellipsis', 
-                whiteSpace: 'nowrap',
-                cursor: 'pointer',
-                fontWeight: location.pathname === '/profile' ? 600 : 400
+              className={`btn ${location.pathname === '/profile' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+              style={{
+                fontSize: '0.85rem',
+                padding: '6px 12px',
+                border: location.pathname === '/profile' ? '1px solid var(--accent-indigo)' : '1px solid var(--border)'
               }}
             >
               👤 Profilim
-            </span>
+            </button>
             <button className="btn btn-secondary btn-sm" onClick={handleSignOut}>Çıkış</button>
           </div>
         ) : (
