@@ -2,22 +2,55 @@
 
 // Helper to detect category based on file name
 function detectCategory(fileName = '') {
-  const name = fileName.toLowerCase();
+  // Normalize Turkish characters
+  let name = fileName.toLowerCase()
+    .replace(/ı/g, 'i')
+    .replace(/ş/g, 's')
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ö/g, 'o');
+
+  // 1. Database Check (Prioritize specific db words)
+  if (name.includes('sql') || name.includes('db') || name.includes('database') || name.includes('veritabani')) {
+    return 'database';
+  }
+  
+  // 2. Frontend / React Check
   if (name.includes('react') || name.includes('web') || name.includes('frontend') || name.includes('js') || name.includes('html') || name.includes('css') || name.includes('slide1')) {
     return 'frontend';
   }
-  if (name.includes('sql') || name.includes('db') || name.includes('database') || name.includes('veritabanı')) {
-    return 'database';
-  }
-  if (name.includes('tarih') || name.includes('history') || name.includes('inkilap') || name.includes('inkılap') || name.includes('sosyal')) {
+  
+  // 3. History Check
+  if (name.includes('tarih') || name.includes('history') || name.includes('inkilap') || name.includes('sosyal')) {
     return 'history';
   }
-  if (name.includes('algorithm') || name.includes('kod') || name.includes('program') || name.includes('java') || name.includes('python') || name.includes('oop') || name.includes('organizasyon')) {
+  
+  // 4. Algorithms & Data Structures Check (Strong programming vocabulary)
+  if (
+    name.includes('algorithm') || 
+    name.includes('kod') || 
+    name.includes('program') || 
+    name.includes('java') || 
+    name.includes('python') || 
+    name.includes('oop') || 
+    name.includes('organizasyon') ||
+    name.includes('veri') || // "veri yapilari" matches here
+    name.includes('yapi') ||
+    name.includes('structure') ||
+    name.includes('tree') ||
+    name.includes('graph') ||
+    name.includes('list') ||
+    name.includes('sort')
+  ) {
     return 'programming';
   }
-  if (name.includes('ai') || name.includes('yapay') || name.includes('intelligence') || name.includes('ml') || name.includes('data')) {
+  
+  // 5. Artificial Intelligence Check
+  if (name.includes('ai') || name.includes('yapay') || name.includes('intelligence') || name.includes('ml')) {
     return 'ai';
   }
+  
   return 'general';
 }
 
