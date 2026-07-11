@@ -55,10 +55,17 @@ function Navbar() {
               style={{
                 fontSize: '0.85rem',
                 padding: '6px 12px',
-                border: location.pathname === '/profile' ? '1px solid var(--accent-indigo)' : '1px solid var(--border)'
+                border: location.pathname === '/profile' ? '1px solid var(--accent-indigo)' : '1px solid var(--border)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
               }}
             >
-              👤 {user.user_metadata?.full_name ? user.user_metadata.full_name.split(' ')[0] : 'Profilim'}
+              <span style={{ fontSize: '1rem', display: 'inline-block', lineHeight: 1 }}>👤</span>
+              <span style={{ display: 'inline-block', lineHeight: 1 }}>
+                {user.user_metadata?.full_name ? user.user_metadata.full_name.split(' ')[0] : 'Profilim'}
+              </span>
             </button>
             <button className="btn btn-secondary btn-sm" onClick={handleSignOut}>Çıkış</button>
           </div>
