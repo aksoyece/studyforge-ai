@@ -284,9 +284,9 @@ export default function QuizGenerator() {
       if (!hasKey) {
         // Demo Modu
         await new Promise(r => setTimeout(r, 2000))
-        extractedQs = getMockQuiz(questionCount)
-        extractedSummary = getMockSummary()
-        extractedFlashcards = getMockFlashcards()
+        extractedQs = getMockQuiz(questionCount, pdfFile.name)
+        extractedSummary = getMockSummary(pdfFile.name)
+        extractedFlashcards = getMockFlashcards(6, pdfFile.name)
         setIsDemoMode(true)
         toast('Demo modunda çalışıyor — Gerçek yapay zeka çıktısı için API Key ekleyin', { icon: '⚠️' })
       } else {
@@ -341,9 +341,9 @@ export default function QuizGenerator() {
       toast('API hatası oluştu — Çalışma alanınız demo verisiyle hazırlanıyor 🔄', { icon: '⚠️', duration: 4000 })
       
       await new Promise(r => setTimeout(r, 1000))
-      const mockQs = getMockQuiz(questionCount)
-      const mockSummary = getMockSummary()
-      const mockCards = getMockFlashcards()
+      const mockQs = getMockQuiz(questionCount, pdfFile.name)
+      const mockSummary = getMockSummary(pdfFile.name)
+      const mockCards = getMockFlashcards(6, pdfFile.name)
 
       setQuestions(mockQs)
       setSummary(mockSummary)
