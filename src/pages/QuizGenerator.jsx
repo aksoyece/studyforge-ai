@@ -219,9 +219,26 @@ export default function QuizGenerator() {
 
       setPhase('quiz')
     } catch (err) {
-      console.error(err)
-      toast.error('Failed to generate quiz. Check your API key.')
-      setPhase('setup')
+      console.error('Quiz generation error:', err)
+      toast.dismiss('extract')
+      
+      // Otomatik demo moduna geç
+      toast('API hatası alındı — Testiniz Demo modda oluşturuluyor 🔄', { icon: '⚠️', duration: 4000 })
+      
+      await new Promise(r => setTimeout(r, 1000))
+      const mockQs = getMockQuiz(questionCount)
+      setQuestions(mockQs)
+      setCurrentQ(0)
+      setScore(0)
+      setIsDemoMode(true)
+
+      await saveQuizSession({
+        pdf_name: pdfFile.name,
+        questions: mockQs,
+        ai_provider: 'demo',
+      })
+      loadHistory()
+      setPhase('quiz')
     }
   }
 
