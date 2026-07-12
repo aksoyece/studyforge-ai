@@ -514,4 +514,31 @@ a { color: inherit; text-decoration: none; }
   transform: rotateY(180deg);
 }
 
+/* ── Streak & Heatmap Gamification Styles ────────────── */
+@keyframes flame-glow {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.5)); }
+  50% { transform: scale(1.15) translateY(-2px); filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.5)); }
+}
+.streak-flame {
+  animation: flame-glow 1.5s infinite ease-in-out;
+}
+.streak-badge-glow {
+  transition: all 0.3s ease;
+}
+.streak-badge-glow:hover {
+  transform: translateY(-2px);
+  background: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3) !important;
+}
+.heatmap-cell {
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+.heatmap-cell:hover {
+  transform: scale(1.15);
+  filter: brightness(1.2);
+  z-index: 10;
+}
+
+
 

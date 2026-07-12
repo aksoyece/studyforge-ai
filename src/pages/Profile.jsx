@@ -44,6 +44,10 @@ export default function Profile() {
   const [analyzingWeaknesses, setAnalyzingWeaknesses] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedItem, setSelectedItem] = useState(null) // Modalda gösterilecek detaylı öğe
+  
+  // Gamification States
+  const [streak, setStreak] = useState(0)
+  const [activityMap, setActivityMap] = useState({})
 
   useEffect(() => {
     if (user) {
@@ -61,6 +65,44 @@ export default function Profile() {
       ])
       setAnalyses(analysesData)
       setQuizzes(quizzesData)
+
+      // Calculate Gamification: Streak & Heatmap
+      const allActivities = [...analysesData, ...quizzesData]
+      const datesMap = {}
+      
+      allActivities.forEach(act => {
+        if (!act.created_at) return
+        const dateStr = new Date(act.created_at).toISOString().split('T')[0]
+        datesMap[dateStr] = (datesMap[dateStr] || 0) + 1
+      })
+      setActivityMap(datesMap)
+
+      // Calculate Streak
+      const uniqueDates = new Set(Object.keys(datesMap))
+      let currentStreak = 0
+      let checkDate = new Date()
+      let dateString = checkDate.toISOString().split('T')[0]
+
+      // If active today or yesterday, check backward
+      if (uniqueDates.has(dateString)) {
+        while (uniqueDates.has(dateString)) {
+          currentStreak++
+          checkDate.setDate(checkDate.getDate() - 1)
+          dateString = checkDate.toISOString().split('T')[0]
+        }
+      } else {
+        // Check if active yesterday (so streak doesn't die instantly today)
+        checkDate.setDate(checkDate.getDate() - 1)
+        dateString = checkDate.toISOString().split('T')[0]
+        if (uniqueDates.has(dateString)) {
+          while (uniqueDates.has(dateString)) {
+            currentStreak++
+            checkDate.setDate(checkDate.getDate() - 1)
+            dateString = checkDate.toISOString().split('T')[0]
+          }
+        }
+      }
+      setStreak(currentStreak)
 
       // Get all wrong questions across all quiz results
       const allWrongQs = resultsData.reduce((acc, curr) => {
@@ -115,20 +157,38 @@ export default function Profile() {
           flexDirection: 'column',
           gap: '16px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{
-              width: '56px', height: '56px', borderRadius: '50%',
-              background: 'var(--gradient-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.5rem', fontWeight: 'bold'
-            }}>
-              👤
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{
+                width: '56px', height: '56px', borderRadius: '50%',
+                background: 'var(--gradient-primary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1.5rem', fontWeight: 'bold'
+              }}>
+                👤
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
+                  {user?.user_metadata?.full_name || 'Profil & Dashboard'}
+                </h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{user?.email}</p>
+              </div>
             </div>
-            <div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-                {user?.user_metadata?.full_name || 'Profil & Dashboard'}
-              </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{user?.email}</p>
+
+            {/* Streak Badge */}
+            <div className="streak-badge-glow" style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '8px 16px', borderRadius: '20px',
+              background: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              boxShadow: streak > 0 ? '0 0 15px rgba(239, 68, 68, 0.15)' : 'none'
+            }}>
+              <span className="streak-flame" style={{ fontSize: '1.3rem', display: 'inline-block' }}>
+                {streak > 0 ? '🔥' : '💀'}
+              </span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: streak > 0 ? '#f87171' : 'var(--text-secondary)' }}>
+                {streak} Günlük Seri
+              </span>
             </div>
           </div>
           
@@ -140,6 +200,95 @@ export default function Profile() {
             <div>
               <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-cyan)' }}>{quizzes.length}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Çözülen Quiz</div>
+            </div>
+          </div>
+        </div>
+
+        {/* GitHub-style Activity Heatmap */}
+        <div className="card animate-fade-up" style={{ marginBottom: '32px', padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.2rem' }}>📅</span>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Çalışma Takvimi</h3>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Son 12 Hafta (Aktivite Yoğunluğu)</span>
+          </div>
+
+          {/* Heatmap Grid */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(12, minmax(40px, 1fr))',
+              gap: '6px',
+              minWidth: '550px'
+            }}>
+              {Array.from({ length: 12 }).map((_, weekIdx) => {
+                return (
+                  <div key={weekIdx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {Array.from({ length: 7 }).map((_, dayIdx) => {
+                      const dayCount = (weekIdx * 7) + dayIdx;
+                      // Calculate date for this cell (going backwards from today to 84 days ago)
+                      const targetDate = new Date();
+                      targetDate.setDate(targetDate.getDate() - (83 - dayCount));
+                      const dateStr = targetDate.toISOString().split('T')[0];
+                      const activityCount = activityMap[dateStr] || 0;
+
+                      // Color based on activity count
+                      let bg = 'rgba(255, 255, 255, 0.03)';
+                      let border = '1px solid rgba(255, 255, 255, 0.03)';
+                      if (activityCount === 1) {
+                        bg = 'rgba(16, 217, 160, 0.2)';
+                        border = '1px solid rgba(16, 217, 160, 0.3)';
+                      } else if (activityCount === 2) {
+                        bg = 'rgba(16, 217, 160, 0.5)';
+                        border = '1px solid rgba(16, 217, 160, 0.6)';
+                      } else if (activityCount >= 3) {
+                        bg = 'var(--accent-mint)';
+                        border = '1px solid var(--accent-mint)';
+                      }
+
+                      const options = { month: 'short', day: 'numeric' };
+                      const labelDate = targetDate.toLocaleDateString('tr-TR', options);
+
+                      return (
+                        <div
+                          key={dayIdx}
+                          title={`${labelDate}: ${activityCount} Aktivite`}
+                          style={{
+                            height: '24px',
+                            borderRadius: '4px',
+                            background: bg,
+                            border: border,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.65rem',
+                            fontWeight: 700,
+                            color: activityCount > 0 ? '#fff' : 'transparent',
+                            transition: 'all 0.2s',
+                            cursor: 'pointer'
+                          }}
+                          className="heatmap-cell"
+                        >
+                          {activityCount > 0 ? activityCount : ''}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Heatmap Legend */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
+              <span>Daha Az</span>
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: 'rgba(255, 255, 255, 0.03)' }} />
+                <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: 'rgba(16, 217, 160, 0.2)' }} />
+                <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: 'rgba(16, 217, 160, 0.5)' }} />
+                <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: 'var(--accent-mint)' }} />
+              </div>
+              <span>Daha Çok</span>
             </div>
           </div>
         </div>
