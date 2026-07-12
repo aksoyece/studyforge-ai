@@ -627,6 +627,60 @@ a { color: inherit; text-decoration: none; }
   40% { transform: scale(1); }
 }
 
+/* ── Interactive Phone Mockup Simulator Styles ───────── */
+.phone-mockup {
+  position: relative;
+  width: 280px;
+  height: 560px;
+  background: #000;
+  border-radius: 40px;
+  border: 12px solid #1a1a24;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+              0 0 0 1px rgba(255, 255, 255, 0.05),
+              0 0 30px rgba(99, 102, 241, 0.15);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.phone-mockup:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), 
+              0 0 0 1px rgba(255, 255, 255, 0.08),
+              0 0 40px rgba(99, 102, 241, 0.25);
+}
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 24px;
+  background: #1a1a24;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  z-index: 100;
+}
+.phone-notch::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 24px;
+  width: 8px;
+  height: 8px;
+  background: #0f111a;
+  border-radius: 50%;
+}
+.phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.phone-view {
+  width: 100%;
+  height: 100%;
+}
+
+
 
 
 

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const features = [
@@ -83,6 +84,7 @@ const techStack = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const [mobileScreen, setMobileScreen] = useState('streak') // streak | flashcards | dashboard
 
   return (
     <div className="page" style={{ paddingTop: '64px', position: 'relative', overflow: 'hidden' }}>
@@ -250,6 +252,212 @@ export default function Home() {
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.6 }}>{s.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Mobile Mockup Section */}
+      <section style={{ padding: '80px 0', borderTop: '1px solid var(--border)', background: 'rgba(255,255,255,0.01)', position: 'relative', zIndex: 1 }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <span className="badge badge-cyan" style={{ marginBottom: '12px' }}>📱 ÇOK YAKINDA</span>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800 }}>StudyForge Cebinizde</h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '580px', margin: '0 auto', fontSize: '0.9rem', lineHeight: 1.6 }}>
+              Yakında yayınlanacak olan mobil uygulamamızla çalışma serinizi koruyabilir, flashcardlarınızı metroda, otobüste her yerde çalışabilirsiniz.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '48px',
+            alignItems: 'center',
+            maxWidth: '850px',
+            margin: '0 auto'
+          }}>
+            {/* Left: Controller Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <button 
+                onClick={() => setMobileScreen('streak')}
+                className="card"
+                style={{
+                  textAlign: 'left',
+                  padding: '20px',
+                  cursor: 'pointer',
+                  border: mobileScreen === 'streak' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border)',
+                  background: mobileScreen === 'streak' ? 'rgba(239, 68, 68, 0.04)' : 'var(--bg-card)',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '1.25rem' }}>🔥</span>
+                  <h4 style={{ fontWeight: 700, color: mobileScreen === 'streak' ? '#f87171' : '#fff' }}>Günlük Çalışma Serisi</h4>
+                </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  Her gün çalışma motivasyonunuzu korumak için tasarlanan Duolingo tarzı seri takibi.
+                </p>
+              </button>
+
+              <button 
+                onClick={() => setMobileScreen('flashcards')}
+                className="card"
+                style={{
+                  textAlign: 'left',
+                  padding: '20px',
+                  cursor: 'pointer',
+                  border: mobileScreen === 'flashcards' ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid var(--border)',
+                  background: mobileScreen === 'flashcards' ? 'rgba(99, 102, 241, 0.04)' : 'var(--bg-card)',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '1.25rem' }}>🗂️</span>
+                  <h4 style={{ fontWeight: 700, color: mobileScreen === 'flashcards' ? '#818cf8' : '#fff' }}>Mobil Çalışma Kartları</h4>
+                </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  Ekranı kaydırarak çalışabileceğiniz, aktif hatırlama odaklı 3D kartlar.
+                </p>
+              </button>
+
+              <button 
+                onClick={() => setMobileScreen('dashboard')}
+                className="card"
+                style={{
+                  textAlign: 'left',
+                  padding: '20px',
+                  cursor: 'pointer',
+                  border: mobileScreen === 'dashboard' ? '1px solid rgba(6, 182, 212, 0.4)' : '1px solid var(--border)',
+                  background: mobileScreen === 'dashboard' ? 'rgba(6, 182, 212, 0.04)' : 'var(--bg-card)',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '1.25rem' }}>📈</span>
+                  <h4 style={{ fontWeight: 700, color: mobileScreen === 'dashboard' ? '#22d3ee' : '#fff' }}>Kişisel İstatistikler</h4>
+                </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  Çözdüğünüz testlerin ve CV uyumluluk puanınızın anlık takibi.
+                </p>
+              </button>
+            </div>
+
+            {/* Right: Phone Frame Simulator */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div className="phone-mockup">
+                {/* Phone Notch */}
+                <div className="phone-notch" />
+                {/* Screen Content */}
+                <div className="phone-screen">
+                  
+                  {/* Streak view */}
+                  {mobileScreen === 'streak' && (
+                    <div className="phone-view animate-fade" style={{ background: '#090a10', display: 'flex', flexDirection: 'column', height: '100%', padding: '24px 16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '32px' }}>
+                        <span>StudyForge Mobile</span>
+                        <span>10:42 AM</span>
+                      </div>
+                      
+                      <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                        <span className="streak-flame" style={{ fontSize: '5rem', display: 'inline-block', marginBottom: '16px' }}>🔥</span>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '8px' }}>7 Günlük Seri!</h3>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', maxWidth: '200px', margin: '0 auto 24px' }}>
+                          Harika gidiyorsun Ece! Bugünün hedefini tamamlamak için son 1 adım kaldı.
+                        </p>
+                        
+                        {/* Weekly map preview */}
+                        <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                          {['P', 'S', 'Ç', 'P', 'C', 'C', 'P'].map((d, i) => (
+                            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                              <div style={{
+                                width: '24px', height: '24px', borderRadius: '50%',
+                                background: i < 5 ? 'var(--gradient-rose)' : 'rgba(255,255,255,0.04)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.7rem', fontWeight: 700
+                              }}>
+                                {i < 5 ? '✓' : ''}
+                              </div>
+                              <span style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>{d}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Flashcards view */}
+                  {mobileScreen === 'flashcards' && (
+                    <div className="phone-view animate-fade" style={{ background: '#090a10', display: 'flex', flexDirection: 'column', height: '100%', padding: '24px 16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '32px' }}>
+                        <span>StudyForge Mobile</span>
+                        <span>10:42 AM</span>
+                      </div>
+                      
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '20px' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--accent-indigo)', fontWeight: 600 }}>KART 3 / 10</span>
+                        
+                        {/* Simulated Small Flashcard */}
+                        <div style={{
+                          height: '180px', borderRadius: '16px',
+                          background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(255,255,255,0.02))',
+                          border: '1px solid var(--border-hover)',
+                          display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                          padding: '20px', textAlign: 'center'
+                        }}>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>Soru / Terim</span>
+                          <h4 style={{ fontSize: '1rem', fontWeight: 700, lineHeight: 1.5 }}>Virtual DOM nedir ve ne işe yarar?</h4>
+                        </div>
+                        
+                        <button className="btn btn-primary btn-sm" style={{ width: '100%', justifyContent: 'center' }}>Cevabı Gör</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dashboard view */}
+                  {mobileScreen === 'dashboard' && (
+                    <div className="phone-view animate-fade" style={{ background: '#090a10', display: 'flex', flexDirection: 'column', height: '100%', padding: '24px 16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
+                        <span>StudyForge Mobile</span>
+                        <span>10:42 AM</span>
+                      </div>
+                      
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'center' }}>
+                        {/* Profile Header */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--gradient-primary)' }} />
+                          <div>
+                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700 }}>Ece Aksoy</h4>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--accent-mint)' }}>Premium Öğrenci</span>
+                          </div>
+                        </div>
+
+                        {/* CV Score Widget */}
+                        <div style={{ background: 'rgba(255,255,255,0.02)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '6px' }}>
+                            <span>CV Eşleşme Puanı</span>
+                            <span style={{ color: 'var(--accent-indigo)', fontWeight: 700 }}>%78</span>
+                          </div>
+                          <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px' }}>
+                            <div style={{ width: '78%', height: '100%', background: 'var(--gradient-primary)', borderRadius: '2px' }} />
+                          </div>
+                        </div>
+
+                        {/* Quiz Stats Widget */}
+                        <div style={{ background: 'rgba(255,255,255,0.02)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '6px' }}>
+                            <span>Çözülen Soru Sayısı</span>
+                            <span style={{ color: 'var(--accent-cyan)', fontWeight: 700 }}>120 Soru</span>
+                          </div>
+                          <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px' }}>
+                            <div style={{ width: '60%', height: '100%', background: 'var(--gradient-cyan)', borderRadius: '2px' }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
