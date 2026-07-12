@@ -217,15 +217,44 @@ export default function Profile() {
           {/* Heatmap Grid */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(12, minmax(40px, 1fr))',
-              gap: '6px',
-              minWidth: '550px'
+              display: 'flex',
+              gap: '12px',
+              minWidth: '580px',
+              alignItems: 'center'
             }}>
-              {Array.from({ length: 12 }).map((_, weekIdx) => {
-                return (
-                  <div key={weekIdx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {Array.from({ length: 7 }).map((_, dayIdx) => {
+              {/* Day of Week Labels */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '204px', /* 7 cells * 24px + 6 gaps * 6px */
+                fontSize: '0.7rem',
+                color: 'var(--text-secondary)',
+                fontWeight: 600,
+                paddingRight: '4px',
+                textAlign: 'right',
+                width: '32px'
+              }}>
+                <span>Pzt</span>
+                <span>Sal</span>
+                <span>Çar</span>
+                <span>Per</span>
+                <span>Cum</span>
+                <span>Cmt</span>
+                <span>Paz</span>
+              </div>
+
+              {/* Grid Wrapper */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(12, minmax(40px, 1fr))',
+                gap: '6px',
+                flex: 1
+              }}>
+                {Array.from({ length: 12 }).map((_, weekIdx) => {
+                  return (
+                    <div key={weekIdx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {Array.from({ length: 7 }).map((_, dayIdx) => {
                       const dayCount = (weekIdx * 7) + dayIdx;
                       // Calculate date for this cell (going backwards from today to 84 days ago)
                       const targetDate = new Date();
@@ -277,7 +306,8 @@ export default function Profile() {
                   </div>
                 );
               })}
-            </div>
+              </div> {/* Close Grid Wrapper */}
+            </div> {/* Close Flex Wrapper */}
             
             {/* Heatmap Legend */}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
