@@ -267,7 +267,7 @@ export default function QuizGenerator() {
 
     try {
       let aiResponse = ''
-      if (isDemoMode) {
+      if (!hasKey || isDemoMode) {
         // Safe offline simulated delay
         await new Promise(r => setTimeout(r, 1200))
         aiResponse = getMockChatResponse(userMsg)
@@ -281,7 +281,10 @@ export default function QuizGenerator() {
       setChatMessages([...updatedMessages, { sender: 'ai', text: aiResponse }])
     } catch (err) {
       console.error('Chat error:', err)
-      toast.error('AI yanıtı alınırken bir hata oluştu.')
+      // Fallback mock response instead of freezing
+      await new Promise(r => setTimeout(r, 1000))
+      const aiResponse = getMockChatResponse(userMsg)
+      setChatMessages([...updatedMessages, { sender: 'ai', text: aiResponse }])
     } finally {
       setChatLoading(false)
     }
