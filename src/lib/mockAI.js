@@ -247,59 +247,86 @@ export function getMockRecoveryQuiz() {
       ],
       correctIndex: 3,
       explanation: 'Sanal DOM, gerçek DOM üzerinde en az değişiklikle (re-flow / re-paint süreçlerini azaltarak) işlem yapmayı sağlayıp hızı artırır.'
-    },
-    {
-      id: 5,
-      question: 'useEffect temizleme (cleanup) fonksiyonu ne zaman çalışır?',
-      options: [
-        'A) Component ilk yüklendiğinde',
-        'B) Her render öncesinde ve component ekrandan kaldırılmadan (unmount) hemen önce',
-        'C) Sadece hata oluştuğunda',
-        'D) Sayfa yenilendiğinde'
-      ],
-      correctIndex: 1,
-      explanation: 'useEffect içerisinden dönülen fonksiyon, bağımlılıklar değişip efekt yeniden tetiklenmeden önce ve bileşen yok edilmeden hemen önce temizlik için çalıştırılır.'
     }
   ]
 }
 
 export function getMockChatResponse(userMessage = '') {
-  const msg = userMessage.toLowerCase();
+  // Normalize Turkish characters and convert to lowercase for robust matching
+  const msg = userMessage.toLowerCase()
+    .replace(/ı/g, 'i')
+    .replace(/ş/g, 's')
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ö/g, 'o');
   
+  // 1. Component Architecture & Component Check
+  if (msg.includes('bilesen') || msg.includes('component') || msg.includes('mimari') || msg.includes('architecture')) {
+    return `React'in en güçlü özelliklerinden biri olan **Bileşen Tabanlı Mimari (Component-Based Architecture)**, arayüzü birbirinden bağımsız, tekrar kullanılabilir ve kendi durumunu (state) yönetebilen küçük parçalara bölme sanatıdır.
+
+**Neden Çok Önemlidir?**
+1. **Tekrar Kullanılabilirlik (Reusability):** Örneğin bir \`Button\` veya \`Card\` bileşenini bir kez yazıp uygulamanın her yerinde farklı verilerle (props) kullanabilirsiniz.
+2. **Kolay Bakım (Maintainability):** Bir hata oluştuğunda tüm projeyi taramak yerine sadece ilgili bileşen dosyasına gidip hatayı çözebilirsiniz.
+3. **Modülerlik:** Ekipler farklı bileşenleri birbirini etkilemeden eş zamanlı olarak geliştirebilir.
+
+React'te her bileşen aslında bir JavaScript fonksiyonudur ve geriye HTML benzeri bir yapı olan **JSX** döndürür.`;
+  }
+  
+  // 2. useState Hook Check
   if (msg.includes('usestate') || msg.includes('state') || msg.includes('durum')) {
     return `React'te **useState**, fonksiyonel bileşenlerde dinamik verileri (durum/state) tanımlamamızı ve yönetmemizi sağlayan en temel Hook'tur.
-Kullanımı:
-\`const [count, setCount] = useState(0);\`
-Burada \`count\` mevcut durumu, \`setCount\` ise bu durumu güncellemek için kullanılan fonksiyondur. State her güncellendiğinde React bileşeni otomatik olarak yeniden çizer (re-render).`;
+    
+**Nasıl Çalışır?**
+\`const [userName, setUserName] = useState('Ece');\`
+- \`userName\`: Durumun o anki değerini tutar.
+- \`setUserName\`: Bu değeri güvenli bir şekilde güncellemek ve bileşenin ekranda yeniden çizilmesini (re-render) tetiklemek için kullanılan özel fonksiyondur.
+React'te state'i asla doğrudan (\`userName = 'Yeni Ad'\`) değiştirmemelisiniz, mutlaka set fonksiyonunu kullanmalısınız.`;
   }
   
-  if (msg.includes('useeffect') || msg.includes('side-effect') || msg.includes('lifecycle')) {
+  // 3. useEffect Hook Check
+  if (msg.includes('useeffect') || msg.includes('side-effect') || msg.includes('lifecycle') || msg.includes('kancalar') || msg.includes('hook')) {
     return `**useEffect**, React bileşenlerinde yan etkileri (side-effects) yönetmek için kullanılan Hook'tur. API'den veri çekme, abonelik başlatma veya DOM'u doğrudan güncelleme gibi durumlar yan etkidir.
     
-İkinci parametre (bağımlılık dizisi):
-- Boş bırakılırsa: Her renderda çalışır.
-- Boş dizi \`[]\` verilirse: Sadece component mount edildiğinde (ilk açılışta) bir kez çalışır.
-- Değişkenler eklenirse \`[state]\`: Bu değişkenler her değiştiğinde çalışır.`;
+**İkinci Parametre (Dependency Array) Mantığı:**
+- **Boş bırakılırsa:** Bileşen her render edildiğinde (her değişiklikte) bu efekt tekrar çalışır.
+- **Boş dizi \`[]\` verilirse:** Sadece bileşen ekrana ilk yüklendiğinde (mount) bir kez çalışır. Sıkça API veri çekme isteklerinde kullanılır.
+- **Değişkenler eklenirse \`[count]\`:** Sadece \`count\` değişkeni değiştiğinde bu efekt tetiklenir.`;
   }
   
-  if (msg.includes('virtual dom') || msg.includes('dom') || msg.includes('sanal dom')) {
-    return `**Virtual DOM (Sanal DOM)**, React'in arayüz güncellemelerini hızlandırmak için hafızada tuttuğu gerçek tarayıcı DOM'unun hafif bir kopyasıdır.
-Bileşen durumu değiştiğinde:
-1. React sanal DOM'u günceller.
-2. Önceki sanal DOM ile yenisini karşılaştırır (diffing algoritması).
-3. Sadece değişen düğümleri gerçek DOM'a yansıtır. Bu sayede tüm sayfayı tekrar çizmek yerine sadece ilgili alanı güncelleyerek yüksek performans sağlar.`;
+  // 4. Virtual DOM & DOM Check
+  if (msg.includes('virtual dom') || msg.includes('dom') || msg.includes('sanal dom') || msg.includes('diffing')) {
+    return `**Virtual DOM (Sanal DOM)**, React'in arayüz güncellemelerini hızlandırmak için hafızada tuttuğu gerçek tarayıcı DOM'unun hafif ve akıllı bir kopyasıdır.
+    
+**Çalışma Döngüsü (Diffing Algoritması):**
+1. Bileşendeki bir veri (state) değiştiğinde, React arka planda yeni bir Sanal DOM ağacı oluşturur.
+2. Önceki Sanal DOM ile yeni Sanal DOM'u karşılaştırır. Buna **Diffing** denir.
+3. Sadece değişen düğümleri (örneğin sadece değişen tek bir buton yazısını) tespit eder ve **gerçek tarayıcı DOM'una sadece o küçük kısmı yansıtır**.
+Bu sayede tüm sayfayı baştan aşağı render etmek yerine minimum işlemle performansı maksimuma çıkarır.`;
   }
 
-  if (msg.includes('nerede') || msg.includes('nasil') || msg.includes('nedir') || msg.includes('ne ise yarar')) {
-    return `Yüklediğiniz doküman **React & Modern Web Geliştirme** konusunu içermektedir. Dokümanda özet olarak şu kavramlardan bahsedilmektedir:
-1. **Bileşen Mimarisi:** Arayüzün tekrar kullanılabilir parçalara bölünmesi.
-2. **Sanal DOM:** Tarayıcı performansını artıran verimli güncelleme mekanizması.
-3. **Hooks (useState, useEffect):** Fonksiyonel bileşenlerde state ve yaşam döngüsü yönetimi.
-
-Öğrenmek istediğiniz özel bir kavram varsa sorabilirsiniz (Örn: "useState nedir?")`;
+  // 5. Vite Check
+  if (msg.includes('vite') || msg.includes('build') || msg.includes('webpack') || msg.includes('paketleme')) {
+    return `**Vite**, modern web projeleri için geliştirilmiş, geleneksel araçlara (Webpack gibi) kıyasla inanılmaz hızlı çalışan bir build (derleme) aracıdır.
+    
+**Neden Bu Kadar Hızlı?**
+- Geliştirme aşamasında kod paketleme (bundling) yapmaz. Tarayıcının yerleşik **ES Modules (ESM)** özelliğini kullanarak sadece talep edilen dosyaları anlık yükler.
+- Değişiklik yapıldığında tüm projeyi baştan derlemek yerine sadece değişen dosyayı anında günceller (Hot Module Replacement - HMR).`;
   }
 
-  return `Merhaba! Yüklediğiniz **React & Modern Web Geliştirme** belgesiyle ilgili size yardımcı olmaya hazırım. 
+  // 6. Conversational keywords like "acar misin", "nasil", "nedir"
+  if (msg.includes('acar') || msg.includes('detay') || msg.includes('anlat') || msg.includes('nedir') || msg.includes('nasil') || msg.includes('ne ise yarar')) {
+    return `Yüklediğiniz doküman **React & Modern Web Geliştirme** üzerine odaklanmaktadır. Dokümandaki ana kavramlardan hangisini daha detaylı açıklamamı istersiniz?
+    
+- **Bileşen Tabanlı Mimari** (Component Architecture)
+- **Sanal DOM & Diffing** (Virtual DOM)
+- **useState & useEffect Hooks** (React Kancaları)
+- **Vite Build Sistemi** (Hızlı Geliştirme)
+    
+Detaylandırmak istediğiniz konuyu yazmanız yeterlidir (Örn: "Bileşen mimarisini detaylandırır mısın?").`;
+  }
 
-Bana belgeyle ilgili her türlü konuyu sorabilir, örneğin **useState**, **useEffect** veya **Sanal DOM** gibi kavramları daha detaylı açıklamamı isteyebilirsiniz.`;
+  return `Yüklediğiniz **React & Modern Web Geliştirme** belgesiyle ilgili sorularınızı yanıtlamaya hazırım. 
+
+Bana belgeyle ilgili sormak istediğiniz konuyu yazabilirsiniz. Örneğin: **Bileşen Tabanlı Mimari**, **useState/useEffect** veya **Sanal DOM** konularından birini daha detaylı açmamı isteyebilirsiniz.`;
 }
