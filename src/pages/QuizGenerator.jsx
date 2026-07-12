@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
-import { generateQuiz_Claude, generateSummary_Claude, generateFlashcards_Claude } from '../lib/claude'
-import { generateQuiz_OpenAI, generateSummary_OpenAI, generateFlashcards_OpenAI } from '../lib/openai'
+import { generateQuiz_Claude, generateSummary_Claude, generateFlashcards_Claude, askDocument_Claude } from '../lib/claude'
+import { generateQuiz_OpenAI, generateSummary_OpenAI, generateFlashcards_OpenAI, askDocument_OpenAI } from '../lib/openai'
 import { saveQuizSession, getQuizSessions, saveQuizResult } from '../lib/supabase'
-import { getMockQuiz, getMockSummary, getMockFlashcards } from '../lib/mockAI'
+import { getMockQuiz, getMockSummary, getMockFlashcards, getMockChatResponse } from '../lib/mockAI'
 import { extractTextFromPDF } from '../lib/pdfExtract'
 import { useAuth } from '../context/AuthContext'
 
@@ -234,11 +234,58 @@ export default function QuizGenerator() {
   const [flashcards, setFlashcards] = useState([])
   const [wrongQuestions, setWrongQuestions] = useState([])
   
+  // Chat Integration States
+  const [chatMessages, setChatMessages] = useState([
+    { sender: 'ai', text: 'Merhaba! Yüklediğiniz bu çalışma belgesiyle ilgili sormak istediğiniz soruları yanıtlayabilir, karmaşık kavramları daha basit açıklayabilirim. Ne öğrenmek istersiniz?' }
+  ])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+
+  const messagesEndRef = useRef(null)
+
+  useEffect(() => {
+    if (studyMode === 'chat') {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [chatMessages, studyMode])
+  
   const [currentQ, setCurrentQ] = useState(0)
   const [score, setScore] = useState(0)
   const [quizFinished, setQuizFinished] = useState(false)
   const [history, setHistory] = useState([])
   const [isDemoMode, setIsDemoMode] = useState(false)
+
+  async function handleSendChatMessage() {
+    if (!chatInput.trim()) return
+    const userMsg = chatInput.trim()
+    setChatInput('')
+    
+    // Append user message
+    const updatedMessages = [...chatMessages, { sender: 'user', text: userMsg }]
+    setChatMessages(updatedMessages)
+    setChatLoading(true)
+
+    try {
+      let aiResponse = ''
+      if (isDemoMode) {
+        // Safe offline simulated delay
+        await new Promise(r => setTimeout(r, 1200))
+        aiResponse = getMockChatResponse(userMsg)
+      } else {
+        if (provider === 'claude') {
+          aiResponse = await askDocument_Claude(pdfText, userMsg, chatMessages)
+        } else {
+          aiResponse = await askDocument_OpenAI(pdfText, userMsg, chatMessages)
+        }
+      }
+      setChatMessages([...updatedMessages, { sender: 'ai', text: aiResponse }])
+    } catch (err) {
+      console.error('Chat error:', err)
+      toast.error('AI yanıtı alınırken bir hata oluştu.')
+    } finally {
+      setChatLoading(false)
+    }
+  }
 
   const CLAUDE_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
   const OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY
@@ -541,6 +588,13 @@ export default function QuizGenerator() {
               >
                 🧠 Deneme Sınavı
               </button>
+              <button 
+                className="btn btn-ghost" 
+                style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: studyMode === 'chat' ? 'var(--bg-card)' : 'transparent', color: studyMode === 'chat' ? 'var(--text-primary)' : 'var(--text-secondary)', border: 'none' }}
+                onClick={() => setStudyMode('chat')}
+              >
+                🤖 AI Asistan
+              </button>
             </div>
 
             {/* Workspace View Selector */}
@@ -580,6 +634,47 @@ export default function QuizGenerator() {
                   ) : (
                     <ScoreScreen score={score} total={questions.length} onRetake={handleRetake} />
                   )}
+                </div>
+              )}
+
+              {/* Chat View */}
+              {studyMode === 'chat' && (
+                <div className="animate-fade chat-window">
+                  <div className="chat-messages">
+                    {chatMessages.map((msg, i) => (
+                      <div key={i} className={`chat-bubble ${msg.sender}`}>
+                        <div style={{ whiteSpace: 'pre-line' }}>{msg.text}</div>
+                      </div>
+                    ))}
+                    {chatLoading && (
+                      <div className="typing-dots">
+                        <div className="typing-dot" />
+                        <div className="typing-dot" />
+                        <div className="typing-dot" />
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                  
+                  <div className="chat-input-area">
+                    <input 
+                      type="text" 
+                      className="chat-input"
+                      placeholder="Dokümanla ilgili bir soru sorun... (Örn: useState nedir?)"
+                      value={chatInput}
+                      onChange={e => setChatInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSendChatMessage(); }}
+                      disabled={chatLoading}
+                    />
+                    <button 
+                      className="btn btn-primary" 
+                      onClick={handleSendChatMessage}
+                      disabled={chatLoading}
+                      style={{ padding: '12px 20px' }}
+                    >
+                      Gönder
+                    </button>
+                  </div>
                 </div>
               )}
 

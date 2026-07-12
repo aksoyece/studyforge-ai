@@ -262,3 +262,44 @@ export function getMockRecoveryQuiz() {
     }
   ]
 }
+
+export function getMockChatResponse(userMessage = '') {
+  const msg = userMessage.toLowerCase();
+  
+  if (msg.includes('usestate') || msg.includes('state') || msg.includes('durum')) {
+    return `React'te **useState**, fonksiyonel bileşenlerde dinamik verileri (durum/state) tanımlamamızı ve yönetmemizi sağlayan en temel Hook'tur.
+Kullanımı:
+\`const [count, setCount] = useState(0);\`
+Burada \`count\` mevcut durumu, \`setCount\` ise bu durumu güncellemek için kullanılan fonksiyondur. State her güncellendiğinde React bileşeni otomatik olarak yeniden çizer (re-render).`;
+  }
+  
+  if (msg.includes('useeffect') || msg.includes('side-effect') || msg.includes('lifecycle')) {
+    return `**useEffect**, React bileşenlerinde yan etkileri (side-effects) yönetmek için kullanılan Hook'tur. API'den veri çekme, abonelik başlatma veya DOM'u doğrudan güncelleme gibi durumlar yan etkidir.
+    
+İkinci parametre (bağımlılık dizisi):
+- Boş bırakılırsa: Her renderda çalışır.
+- Boş dizi \`[]\` verilirse: Sadece component mount edildiğinde (ilk açılışta) bir kez çalışır.
+- Değişkenler eklenirse \`[state]\`: Bu değişkenler her değiştiğinde çalışır.`;
+  }
+  
+  if (msg.includes('virtual dom') || msg.includes('dom') || msg.includes('sanal dom')) {
+    return `**Virtual DOM (Sanal DOM)**, React'in arayüz güncellemelerini hızlandırmak için hafızada tuttuğu gerçek tarayıcı DOM'unun hafif bir kopyasıdır.
+Bileşen durumu değiştiğinde:
+1. React sanal DOM'u günceller.
+2. Önceki sanal DOM ile yenisini karşılaştırır (diffing algoritması).
+3. Sadece değişen düğümleri gerçek DOM'a yansıtır. Bu sayede tüm sayfayı tekrar çizmek yerine sadece ilgili alanı güncelleyerek yüksek performans sağlar.`;
+  }
+
+  if (msg.includes('nerede') || msg.includes('nasil') || msg.includes('nedir') || msg.includes('ne ise yarar')) {
+    return `Yüklediğiniz doküman **React & Modern Web Geliştirme** konusunu içermektedir. Dokümanda özet olarak şu kavramlardan bahsedilmektedir:
+1. **Bileşen Mimarisi:** Arayüzün tekrar kullanılabilir parçalara bölünmesi.
+2. **Sanal DOM:** Tarayıcı performansını artıran verimli güncelleme mekanizması.
+3. **Hooks (useState, useEffect):** Fonksiyonel bileşenlerde state ve yaşam döngüsü yönetimi.
+
+Öğrenmek istediğiniz özel bir kavram varsa sorabilirsiniz (Örn: "useState nedir?")`;
+  }
+
+  return `Merhaba! Yüklediğiniz **React & Modern Web Geliştirme** belgesiyle ilgili size yardımcı olmaya hazırım. 
+
+Bana belgeyle ilgili her türlü konuyu sorabilir, örneğin **useState**, **useEffect** veya **Sanal DOM** gibi kavramları daha detaylı açıklamamı isteyebilirsiniz.`;
+}

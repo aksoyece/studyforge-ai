@@ -133,3 +133,19 @@ Write in Turkish. Return ONLY the JSON array, no markdown.`
   const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim()
   return JSON.parse(cleaned)
 }
+
+export async function askDocument_OpenAI(pdfText, userQuestion, chatHistory = []) {
+  const formattedHistory = chatHistory.map(msg => `${msg.sender === 'user' ? 'Student' : 'AI Assistant'}: ${msg.text}`).join('\n')
+  
+  const system = `You are an expert AI Study Assistant. Answer the student's question based strictly on the provided document text.
+Document Text:
+${pdfText.slice(0, 8000)}
+
+Rules:
+- Be concise, educational, and helpful.
+- If the answer cannot be found in the document, use your general knowledge but mention that it is not explicitly stated in the document.
+- Write in Turkish.`
+
+  const message = `Chat History:\n${formattedHistory}\n\nStudent Question: ${userQuestion}`
+  return await callOpenAI(system, message)
+}
