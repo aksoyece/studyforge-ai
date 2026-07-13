@@ -117,7 +117,7 @@ export default function Calendar() {
   }
 
   return (
-    <div className="page" style={{ padding: '40px 20px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="page" style={{ padding: '120px 20px 80px 20px', maxWidth: '1400px', margin: '0 auto' }}>
       <div style={{ marginBottom: '32px' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '8px' }}>
           Sürükle-Bırak <span style={{ background: 'var(--gradient-cyan)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Çalışma Takvimi</span>
