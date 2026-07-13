@@ -20,12 +20,37 @@ export default function Calendar() {
     }
   })
 
-  const [availableTasks, setAvailableTasks] = useState([
-    { id: 't1', title: '1 Saat Matematik', type: 'general', color: 'var(--accent-indigo)' },
-    { id: 't2', title: 'Fizik Testi Çöz', type: 'general', color: 'var(--accent-cyan)' },
-    { id: 't3', title: 'Tarih Özet Oku', type: 'general', color: 'var(--accent-rose)' },
-    { id: 't4', title: 'Kodlama Pratiği', type: 'general', color: 'var(--accent-mint)' }
-  ])
+  const [newTaskTitle, setNewTaskTitle] = useState('')
+  const [availableTasks, setAvailableTasks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('studyforge_tasks')
+      if (saved) return JSON.parse(saved)
+    } catch(e) {}
+    return [
+      { id: 't1', title: '1 Saat Matematik', type: 'general', color: 'var(--accent-indigo)' },
+      { id: 't2', title: 'Fizik Testi Çöz', type: 'general', color: 'var(--accent-cyan)' },
+      { id: 't3', title: 'Tarih Özet Oku', type: 'general', color: 'var(--accent-rose)' },
+      { id: 't4', title: 'Kodlama Pratiği', type: 'general', color: 'var(--accent-mint)' }
+    ]
+  })
+
+  // Save custom tasks
+  useEffect(() => {
+    localStorage.setItem('studyforge_tasks', JSON.stringify(availableTasks.filter(t => !t.isAi)))
+  }, [availableTasks])
+
+  const handleAddTask = (e) => {
+    e.preventDefault()
+    if (!newTaskTitle.trim()) return
+    const newTask = {
+      id: 'custom_' + Date.now(),
+      title: newTaskTitle.trim(),
+      type: 'custom',
+      color: 'var(--accent-cyan)'
+    }
+    setAvailableTasks(prev => [newTask, ...prev])
+    setNewTaskTitle('')
+  }
 
   // Load AI recommendations from quiz history
   useEffect(() => {
@@ -137,9 +162,21 @@ export default function Calendar() {
           <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>📋</span> Görev Havuzu
           </h3>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
             Görevleri tutup sağdaki günlere sürükleyin. Sileceğiniz görevleri buraya geri bırakın.
           </p>
+
+          <form onSubmit={handleAddTask} style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            <input 
+              type="text" 
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              placeholder="Yeni görev ekle..." 
+              className="form-input" 
+              style={{ flex: 1, padding: '8px 12px', fontSize: '0.85rem', marginBottom: 0 }} 
+            />
+            <button type="submit" className="btn btn-primary btn-sm" style={{ padding: '8px 12px' }}>Ekle</button>
+          </form>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {availableTasks.map(task => (
