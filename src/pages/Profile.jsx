@@ -145,6 +145,16 @@ export default function Profile() {
     }
   }
 
+  const userXP = (quizzes?.length || 0) * 150 + (analyses?.length || 0) * 50 + (streak || 0) * 20
+  const mockLeaderboard = [
+    { id: '1', name: 'Ali Yılmaz', xp: 3400, avatar: '👨‍🎓', isUser: false },
+    { id: '2', name: 'Ayşe Demir', xp: 2800, avatar: '👩‍🏫', isUser: false },
+    { id: '3', name: 'Mehmet Can', xp: 2100, avatar: '👨‍💻', isUser: false },
+    { id: 'user', name: user?.user_metadata?.full_name || 'Sen', xp: userXP, avatar: '⭐', isUser: true },
+    { id: '4', name: 'Zeynep Kaya', xp: 1500, avatar: '👩‍🎓', isUser: false },
+    { id: '5', name: 'Deniz Şahin', xp: 950, avatar: '👨‍🚀', isUser: false }
+  ].sort((a, b) => b.xp - a.xp)
+
   return (
     <div className="page">
       <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px', maxWidth: '850px' }}>
@@ -405,6 +415,47 @@ export default function Profile() {
               <span style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '4px' }}>Night Owl</span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Gece Kuşu</span>
             </div>
+          </div>
+        </div>
+
+        {/* Leaderboard Card */}
+        <div className="card animate-fade-up" style={{ marginBottom: '32px', padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+            <span style={{ fontSize: '1.25rem' }}>🏅</span>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Liderlik Tablosu (Sınıf Sıralaması)</h3>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {mockLeaderboard.map((person, index) => {
+              const isTop3 = index < 3
+              const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : ''
+              
+              return (
+                <div key={person.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '16px', borderRadius: '12px',
+                  background: person.isUser ? 'rgba(99,102,241,0.1)' : 'rgba(255,255,255,0.02)',
+                  border: person.isUser ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(255,255,255,0.05)',
+                  boxShadow: person.isUser ? '0 0 20px rgba(99,102,241,0.1)' : 'none',
+                  transition: 'transform 0.2s'
+                }} className={person.isUser ? "animate-pulse-slow" : ""}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 800, width: '30px', textAlign: 'center', color: isTop3 ? '#fff' : 'var(--text-muted)' }}>
+                      {isTop3 ? medal : `#${index + 1}`}
+                    </div>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+                      {person.avatar}
+                    </div>
+                    <span style={{ fontWeight: person.isUser ? 700 : 500, color: person.isUser ? 'var(--accent-indigo)' : '#fff' }}>
+                      {person.name}
+                    </span>
+                  </div>
+                  <div style={{ fontWeight: 800, color: person.isUser ? 'var(--accent-cyan)' : 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {person.xp} <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>XP</span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
