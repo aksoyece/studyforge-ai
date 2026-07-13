@@ -398,10 +398,24 @@ export default function QuizGenerator() {
           finalSourceName = imageFile.name
         } else if (uploadType === 'youtube') {
           try {
-            const res = await fetch(`https://noembed.com/embed?dataType=json&url=${encodeURIComponent(youtubeUrl)}`)
+            toast('YouTube video bilgileri çekiliyor...', { id: 'extract' })
+            // Fetch youtube page via allorigins to get title and description
+            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(youtubeUrl)}`)
             const data = await res.json()
-            const title = data.title || youtubeUrl
-            text = `Aşağıdaki başlığa ve konuya sahip YouTube videosu için detaylı bir çalışma özeti, kavramlar ve test soruları çıkar: ${title}`
+            const html = data.contents
+            
+            const titleMatch = html.match(/<title>(.*?)<\/title>/i)
+            const title = titleMatch ? titleMatch[1].replace(' - YouTube', '') : youtubeUrl
+            
+            const descMatch = html.match(/<meta\s+name="description"\s+content="([^"]*)"/i)
+            const description = descMatch ? descMatch[1] : ""
+            
+            toast('Sadece video başlığı ve açıklaması üzerinden özet çıkarılıyor (Tam transkript için backend gerekir).', { icon: 'ℹ️', duration: 4000 })
+            
+            text = `Aşağıdaki başlığa ve açıklama metnine sahip YouTube videosu için detaylı bir çalışma özeti, önemli kavramlar ve test soruları çıkar:
+            
+Başlık: ${title}
+Açıklama: ${description}`
             finalSourceName = title
           } catch(e) {
             text = `Aşağıdaki YouTube videosu için detaylı çalışma özeti çıkar: ${youtubeUrl}`
@@ -409,11 +423,33 @@ export default function QuizGenerator() {
           }
         } else if (uploadType === 'url') {
           try {
+            toast('Web sitesi içeriği okunuyor...', { id: 'extract' })
             const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(websiteUrl)}`)
             const data = await res.json()
-            const match = data.contents.match(/<title>(.*?)<\/title>/i)
-            const title = match ? match[1] : websiteUrl
-            text = `Aşağıdaki başlığa ve konuya sahip Web makalesi için detaylı bir çalışma özeti, kavramlar ve test çıkar: ${title} (${websiteUrl})`
+            
+            // Extract title
+            const titleMatch = data.contents.match(/<title>(.*?)<\/title>/i)
+            const title = titleMatch ? titleMatch[1] : websiteUrl
+            
+            // Extract body text (rudimentary client-side scraping)
+            const parser = new DOMParser()
+            const doc = parser.parseFromString(data.contents, 'text/html')
+            
+            // Remove scripts and styles
+            doc.querySelectorAll('script, style, nav, footer, header').forEach(el => el.remove())
+            
+            let bodyText = doc.body ? doc.body.innerText : ''
+            bodyText = bodyText.replace(/\s+/g, ' ').trim()
+            
+            // Limit to ~15000 characters to prevent API payload limits
+            if (bodyText.length > 15000) bodyText = bodyText.substring(0, 15000)
+            
+            text = `Aşağıdaki web sitesi metnini okuyarak detaylı bir çalışma özeti, kavramlar ve test çıkar.
+            
+Site Başlığı: ${title}
+İçerik:
+${bodyText}`
+            
             finalSourceName = title.length > 50 ? title.substring(0, 50) + '...' : title
           } catch(e) {
             text = `Aşağıdaki Web sayfası için detaylı çalışma özeti çıkar: ${websiteUrl}`
