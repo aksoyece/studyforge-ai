@@ -86,6 +86,50 @@ export default function Home() {
   const navigate = useNavigate()
   const [mobileScreen, setMobileScreen] = useState('streak') // streak | flashcards | dashboard
 
+  // Interactive Live AI Demo States
+  const [demoStep, setDemoStep] = useState('upload') // upload | analyzing | workspace
+  const [demoActiveTab, setDemoActiveTab] = useState('chat') // summary | flashcards | quiz | chat
+  const [demoChatMessages, setDemoChatMessages] = useState([
+    { sender: 'ai', text: 'Merhaba! Yüklediğiniz "Binary Search Algorithm.pdf" dosyasıyla ilgili sormak istediğiniz soruları yanıtlayabilirim. Ne öğrenmek istersiniz?' }
+  ])
+  const [demoChatInput, setDemoChatInput] = useState('')
+  const [demoChatLoading, setDemoChatLoading] = useState(false)
+  const [demoFlashcardFlipped, setDemoFlashcardFlipped] = useState(false)
+  const [demoQuizAnswered, setDemoQuizAnswered] = useState(null)
+
+  function startDemoAnalysis() {
+    setDemoStep('analyzing')
+    setTimeout(() => {
+      setDemoStep('workspace')
+    }, 2200)
+  }
+
+  function handleDemoSendChat() {
+    if (!demoChatInput.trim() || demoChatLoading) return
+    const userMsg = demoChatInput.trim()
+    setDemoChatInput('')
+    
+    const updated = [...demoChatMessages, { sender: 'user', text: userMsg }]
+    setDemoChatMessages(updated)
+    setDemoChatLoading(true)
+
+    setTimeout(() => {
+      let aiResponse = 'Harika bir soru! İkili Arama (Binary Search) algoritması, sıralı bir dizide hedef elemanı bulmak için arama aralığını her adımda yarıya indiren son derece verimli bir algoritmadır. Çalışma zamanı karmaşıklığı O(log n) değeridir.'
+      
+      const normalized = userMsg.toLowerCase()
+      if (normalized.includes('complex') || normalized.includes('time') || normalized.includes('hiz') || normalized.includes('karmaşik') || normalized.includes('o(')) {
+        aiResponse = 'İkili arama (Binary Search), her adımda diziyi ortadan böldüğü için en kötü senaryoda bile **O(log n)** sürede çalışır. Örneğin 1 milyon elemanlı sıralı bir dizide aranan eleman maksimum 20 adımda kesinlikle bulunur!'
+      } else if (normalized.includes('explain') || normalized.includes('anlat') || normalized.includes('nasil') || normalized.includes('nedir')) {
+        aiResponse = 'Binary Search algoritmasının çalışma mantığı şöyledir:\n1. Dizinin tam ortasındaki elemana bakılır.\n2. Aranan değer ortadaki elemana eşitse arama biter.\n3. Aranan değer ortadaki elemandan küçükse sol yarıya, büyükse sağ yarıya odaklanılır.\n4. Bu işlem aralık sıfırlanana kadar tekrarlanır.'
+      } else if (normalized.includes('quiz') || normalized.includes('soru')) {
+        aiResponse = 'İşte İkili Arama ile ilgili hızlı bir soru:\n\n**Soru:** Binary Search algoritmasının çalışması için aranacak veri setinin hangi özelliğe sahip olması zorunludur?\n\n*İpucu: Verilerin sıralı (sorted) olması gerekir!*'
+      }
+
+      setDemoChatMessages([...updated, { sender: 'ai', text: aiResponse }])
+      setDemoChatLoading(false)
+    }, 1000)
+  }
+
   return (
     <div className="page" style={{ paddingTop: '64px', position: 'relative', overflow: 'hidden' }}>
       
@@ -135,53 +179,270 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Premium Dashboard Mockup Preview */}
-          <div className="dashboard-mockup animate-fade-up" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <div className="mockup-header">
-              <div className="mockup-dot" style={{ background: '#ff5f56' }} />
-              <div className="mockup-dot" style={{ background: '#ffbd2e' }} />
-              <div className="mockup-dot" style={{ background: '#27c93f' }} />
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginLeft: '12px', letterSpacing: '0.05em' }}>studyforge-ai.vercel.app/profile</span>
+          {/* 1. Canlı İnteraktif AI Demo Workspace Simülatörü */}
+          <div className="dashboard-mockup animate-fade-up" style={{ maxWidth: '850px', margin: '0 auto 48px', overflow: 'hidden' }}>
+            <div className="mockup-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <div className="mockup-dot" style={{ background: '#ff5f56' }} />
+                <div className="mockup-dot" style={{ background: '#ffbd2e' }} />
+                <div className="mockup-dot" style={{ background: '#27c93f' }} />
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginLeft: '12px' }}>studyforge-ai.vercel.app/demo-workspace</span>
+              </div>
+              <span className="badge badge-indigo" style={{ fontSize: '0.65rem', textTransform: 'uppercase' }}>Canlı Demo Simülatörü</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '20px', textAlign: 'left' }}>
-              {/* Left Panel Simulator */}
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '12px' }}>Son Analiz Sonucu</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                  <div style={{
-                    width: '50px', height: '50px', borderRadius: '50%',
-                    border: '4px solid var(--accent-mint)', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 'bold', color: 'var(--accent-mint)', fontSize: '0.9rem'
-                  }}>
-                    84%
-                  </div>
-                  <div>
-                    <p style={{ fontSize: '0.8rem', fontWeight: 600 }}>Yazılım Mühendisi</p>
-                    <p style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Eşleşme Oranı Yüksek</p>
-                  </div>
+            <div style={{ padding: '24px', background: 'rgba(9, 10, 16, 0.95)', borderBottomRightRadius: '16px', borderBottomLeftRadius: '16px' }}>
+              {/* Step 1: Upload Simulator */}
+              {demoStep === 'upload' && (
+                <div style={{ textAlign: 'center', padding: '40px 20px' }} className="animate-fade">
+                  <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📄</div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>Binary Search Algorithm.pdf</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                    Yapay zekanın bu dokümandan ders notları, özetler, flashcardlar ve quiz çıkarmasını görmek için analizi başlatın.
+                  </p>
+                  <button className="btn btn-primary" onClick={startDemoAnalysis} style={{ margin: '0 auto' }}>
+                    ⚡ AI Analizini Başlat
+                  </button>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                  <span className="badge badge-mint" style={{ fontSize: '0.6rem' }}>TypeScript</span>
-                  <span className="badge badge-mint" style={{ fontSize: '0.6rem' }}>Docker</span>
-                  <span className="badge badge-rose" style={{ fontSize: '0.6rem' }}>CI/CD Eksik</span>
-                </div>
-              </div>
+              )}
 
-              {/* Right Panel Simulator */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                  <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--accent-cyan)', textTransform: 'uppercase', marginBottom: '8px' }}>Örnek Quiz Sorusu</p>
-                  <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '12px' }}>Vite neden geleneksel araçlara kıyasla daha hızlıdır?</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'rgba(16,217,160,0.1)', border: '1px solid rgba(16,217,160,0.3)', borderRadius: '6px', color: 'var(--accent-mint)' }}>
-                      A) Native ESM tabanlı çalıştığı için ✓
-                    </div>
-                    <div style={{ fontSize: '0.75rem', padding: '6px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
-                      B) Webpack motoru kullandığı için
-                    </div>
+              {/* Step 2: Analyzing Simulator */}
+              {demoStep === 'analyzing' && (
+                <div style={{ textAlign: 'center', padding: '50px 20px' }} className="animate-fade">
+                  <div className="spinner" style={{ borderTopColor: 'var(--accent-cyan)', margin: '0 auto 20px' }} />
+                  <p style={{ fontSize: '0.95rem', fontWeight: 600 }}>Doküman Analiz Ediliyor...</p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px' }}>İkili Arama Algoritması taranıyor, kavramlar ayrıştırılıyor.</p>
+                </div>
+              )}
+
+              {/* Step 3: Workspace Simulator */}
+              {demoStep === 'workspace' && (
+                <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
+                  
+                  {/* Demo Navigation Tabs */}
+                  <div style={{ display: 'flex', gap: '6px', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <button 
+                      onClick={() => setDemoActiveTab('summary')}
+                      style={{ flex: 1, padding: '6px', fontSize: '0.75rem', background: demoActiveTab === 'summary' ? 'var(--bg-card)' : 'transparent', color: demoActiveTab === 'summary' ? '#fff' : 'var(--text-secondary)', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                    >
+                      📝 Özet
+                    </button>
+                    <button 
+                      onClick={() => setDemoActiveTab('flashcards')}
+                      style={{ flex: 1, padding: '6px', fontSize: '0.75rem', background: demoActiveTab === 'flashcards' ? 'var(--bg-card)' : 'transparent', color: demoActiveTab === 'flashcards' ? '#fff' : 'var(--text-secondary)', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                    >
+                      🗂️ Flashcards
+                    </button>
+                    <button 
+                      onClick={() => setDemoActiveTab('quiz')}
+                      style={{ flex: 1, padding: '6px', fontSize: '0.75rem', background: demoActiveTab === 'quiz' ? 'var(--bg-card)' : 'transparent', color: demoActiveTab === 'quiz' ? '#fff' : 'var(--text-secondary)', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                    >
+                      🧠 Quiz
+                    </button>
+                    <button 
+                      onClick={() => setDemoActiveTab('chat')}
+                      style={{ flex: 1, padding: '6px', fontSize: '0.75rem', background: demoActiveTab === 'chat' ? 'var(--bg-card)' : 'transparent', color: demoActiveTab === 'chat' ? '#fff' : 'var(--text-secondary)', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                    >
+                      🤖 AI Chat
+                    </button>
                   </div>
+
+                  {/* Demo Tab Content */}
+                  <div style={{ minHeight: '220px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px' }}>
+                    
+                    {/* Summary Tab */}
+                    {demoActiveTab === 'summary' && (
+                      <div className="animate-fade">
+                        <h4 style={{ color: 'var(--accent-mint)', fontWeight: 700, marginBottom: '8px' }}>Akıllı Özet: İkili Arama (Binary Search)</h4>
+                        <p style={{ fontSize: '0.85rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
+                          İkili Arama, sıralanmış bir dizide aranan elemanın bulunması için kullanılan **O(log n)** karmaşıklığına sahip hızlı bir algoritmadır. 
+                          Her adımda arama aralığını yarıya indirerek çalışır. Web tarayıcılarında, veri indeksleme motorlarında ve sıralı listelerin hızlı taranmasında aktif rol oynar.
+                        </p>
+                        <ul style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '12px', paddingLeft: '16px', lineHeight: 1.6 }}>
+                          <li><strong>Zorunluluk:</strong> Veri setinin kesinlikle sıralanmış olması gerekir.</li>
+                          <li><strong>Çalışma Zamanı:</strong> O(log n) (1 milyon veriyi 20 adımda arar).</li>
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Flashcards Tab */}
+                    {demoActiveTab === 'flashcards' && (
+                      <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                        <div 
+                          onClick={() => setDemoFlashcardFlipped(!demoFlashcardFlipped)}
+                          style={{
+                            width: '100%', maxWidth: '340px', height: '140px',
+                            background: demoFlashcardFlipped ? 'rgba(16, 217, 160, 0.06)' : 'rgba(99, 102, 241, 0.06)',
+                            border: demoFlashcardFlipped ? '1px solid var(--accent-mint)' : '1px solid var(--accent-indigo)',
+                            borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                            alignItems: 'center', textAlign: 'center', padding: '16px', cursor: 'pointer',
+                            transition: 'all 0.3s'
+                          }}
+                        >
+                          <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                            {demoFlashcardFlipped ? '💡 CEVAP / AÇIKLAMA' : '❓ SORU / TERİM'}
+                          </span>
+                          <h5 style={{ fontSize: '0.95rem', fontWeight: 700 }}>
+                            {demoFlashcardFlipped ? 'O(log n)' : 'Binary Search algoritmasının en kötü durum (Worst Case) karmaşıklığı nedir?'}
+                          </h5>
+                        </div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Çevirmek için karta tıklayın</span>
+                      </div>
+                    )}
+
+                    {/* Quiz Tab */}
+                    {demoActiveTab === 'quiz' && (
+                      <div className="animate-fade">
+                        <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>SORU 1 / 1</span>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '8px 0 16px' }}>Binary Search algoritmasının çalışabilmesi için verilerin sahip olması gereken özellik nedir?</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <button 
+                            onClick={() => setDemoQuizAnswered('A')}
+                            style={{
+                              width: '100%', padding: '10px 14px', borderRadius: '6px', textAlign: 'left', fontSize: '0.8rem', border: '1px solid var(--border)',
+                              background: demoQuizAnswered === 'A' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.02)',
+                              borderColor: demoQuizAnswered === 'A' ? 'rgba(239, 68, 68, 0.4)' : 'var(--border)',
+                              color: demoQuizAnswered === 'A' ? '#f87171' : '#fff', cursor: 'pointer'
+                            }}
+                          >
+                            A) Rastgele dağıtılmış olması (Yanlış cevap)
+                          </button>
+                          <button 
+                            onClick={() => setDemoQuizAnswered('B')}
+                            style={{
+                              width: '100%', padding: '10px 14px', borderRadius: '6px', textAlign: 'left', fontSize: '0.8rem', border: '1px solid var(--border)',
+                              background: demoQuizAnswered === 'B' ? 'rgba(16, 217, 160, 0.15)' : 'rgba(255,255,255,0.02)',
+                              borderColor: demoQuizAnswered === 'B' ? 'var(--accent-mint)' : 'var(--border)',
+                              color: demoQuizAnswered === 'B' ? 'var(--accent-mint)' : '#fff', cursor: 'pointer'
+                            }}
+                          >
+                            B) Sıralı (Sorted) olması ✓ (Doğru cevap!)
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Chat Tab */}
+                    {demoActiveTab === 'chat' && (
+                      <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ maxHeight: '160px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+                          {demoChatMessages.map((m, i) => (
+                            <div key={i} style={{
+                              padding: '8px 12px', borderRadius: '10px', fontSize: '0.8rem', maxWidth: '85%', lineHeight: 1.4,
+                              alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start',
+                              background: m.sender === 'user' ? 'var(--gradient-primary)' : 'rgba(255,255,255,0.03)',
+                              border: m.sender === 'user' ? 'none' : '1px solid var(--border)',
+                              color: '#fff'
+                            }}>
+                              {m.text}
+                            </div>
+                          ))}
+                          {demoChatLoading && (
+                            <div className="typing-dots">
+                              <div className="typing-dot" />
+                              <div className="typing-dot" />
+                              <div className="typing-dot" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Quick Action Questions */}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+                          <span 
+                            onClick={() => { setDemoChatInput('Hız karmaşıklığı nedir?'); }}
+                            style={{ fontSize: '0.7rem', padding: '4px 10px', borderRadius: '20px', border: '1px solid var(--border-hover)', background: 'rgba(255,255,255,0.02)', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                          >
+                            "Hız karmaşıklığı nedir?"
+                          </span>
+                          <span 
+                            onClick={() => { setDemoChatInput('Çalışma mantığı nedir?'); }}
+                            style={{ fontSize: '0.7rem', padding: '4px 10px', borderRadius: '20px', border: '1px solid var(--border-hover)', background: 'rgba(255,255,255,0.02)', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                          >
+                            "Çalışma mantığı nedir?"
+                          </span>
+                        </div>
+
+                        {/* Chat input box */}
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input 
+                            type="text"
+                            placeholder="Soru sorun... (Örn: Hız karmaşıklığı nedir?)"
+                            value={demoChatInput}
+                            onChange={e => setDemoChatInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleDemoSendChat(); }}
+                            style={{ flex: 1, padding: '10px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '8px', color: '#fff', fontSize: '0.8rem' }}
+                          />
+                          <button onClick={handleDemoSendChat} className="btn btn-primary btn-sm" style={{ padding: '8px 16px' }}>Gönder</button>
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. Apple Tarzı Glassmorphic Study Dashboard Önizlemesi */}
+          <div style={{ textAlign: 'center', marginTop: '64px', marginBottom: '32px' }}>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>Your Study Dashboard</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Gelişiminizi gerçek zamanlı takip eden modern, şık çalışma paneli.</p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: '24px',
+            maxWidth: '850px',
+            margin: '0 auto 80px'
+          }}>
+            {/* Widget 1: Streak */}
+            <div className="glass-panel" style={{ padding: '24px', textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>STUDY STREAK</span>
+                <span className="streak-flame" style={{ fontSize: '1.5rem' }}>🔥</span>
+              </div>
+              <h4 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f87171', marginBottom: '4px' }}>18 Days</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--accent-mint)', fontWeight: 600 }}>Keep studying tomorrow!</p>
+              
+              {/* Streak bars indicator */}
+              <div style={{ display: 'flex', gap: '4px', marginTop: '16px' }}>
+                {Array.from({ length: 18 }).map((_, i) => (
+                  <div key={i} style={{ flex: 1, height: '14px', borderRadius: '3px', background: i < 18 ? 'var(--gradient-rose)' : 'rgba(255,255,255,0.05)' }} />
+                ))}
+              </div>
+            </div>
+
+            {/* Widget 2: XP & Level */}
+            <div className="glass-panel" style={{ padding: '24px', textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>EXPERIENCE POINTS</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>LEVEL 4</span>
+              </div>
+              <h4 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-cyan)', marginBottom: '4px' }}>1,240 XP</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Sonraki Seviye için 260 XP gerekli</p>
+              
+              {/* Progress bar */}
+              <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', marginTop: '22px' }}>
+                <div style={{ width: '74%', height: '100%', background: 'var(--gradient-cyan)', borderRadius: '3px' }} />
+              </div>
+            </div>
+
+            {/* Widget 3: Tasks & Exams */}
+            <div className="glass-panel" style={{ padding: '24px', textAlign: 'left' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>TODAY TASKS</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem' }}>
+                  <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '2px solid var(--accent-mint)', background: 'rgba(16, 217, 160, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
+                  <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>Binary Search Özetini Oku</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem' }}>
+                  <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '2px solid var(--accent-indigo)', background: 'transparent' }} />
+                  <span>5 Adet Flashcard Çöz</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem' }}>
+                  <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '2px solid var(--accent-indigo)', background: 'transparent' }} />
+                  <span style={{ color: '#fff' }}>1 Adet Deneme Sınavı Tamamla</span>
                 </div>
               </div>
             </div>
