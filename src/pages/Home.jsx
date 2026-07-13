@@ -97,6 +97,36 @@ export default function Home() {
   const [demoFlashcardFlipped, setDemoFlashcardFlipped] = useState(false)
   const [demoQuizAnswered, setDemoQuizAnswered] = useState(null)
 
+  // Dynamic Exam Countdown States
+  const [examInfo, setExamInfo] = useState(() => {
+    try {
+      const saved = localStorage.getItem('studyforge_exam')
+      if (saved) return JSON.parse(saved)
+    } catch(e){}
+    // Fallback date 14 days from now
+    const d = new Date()
+    d.setDate(d.getDate() + 14)
+    return { name: 'Veri Yapıları Vize Sınavı', date: d.toISOString().split('T')[0] }
+  })
+  const [isEditingExam, setIsEditingExam] = useState(false)
+  const [examForm, setExamForm] = useState(examInfo)
+
+  function saveExam() {
+    setExamInfo(examForm)
+    localStorage.setItem('studyforge_exam', JSON.stringify(examForm))
+    setIsEditingExam(false)
+  }
+
+  function calculateDaysRemaining(targetDate) {
+    const target = new Date(targetDate)
+    const today = new Date()
+    target.setHours(0,0,0,0)
+    today.setHours(0,0,0,0)
+    const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24))
+    return diffDays > 0 ? diffDays : 0
+  }
+  const daysRemaining = calculateDaysRemaining(examInfo.date)
+
   function startDemoAnalysis() {
     setDemoStep('analyzing')
     setTimeout(() => {
@@ -451,15 +481,26 @@ export default function Home() {
             <div className="glass-panel" style={{ padding: '24px', textAlign: 'left', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(0, 0, 0, 0.2))', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fca5a5', textTransform: 'uppercase' }}>UPCOMING EXAM</span>
-                <span style={{ fontSize: '1.2rem' }}>🎯</span>
+                <button onClick={() => setIsEditingExam(!isEditingExam)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem' }} title="Sınavı Düzenle">✏️</button>
               </div>
-              <h4 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f87171', marginBottom: '4px' }}>14 Days</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Veri Yapıları Vize Sınavı</p>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '22px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                <span>12 Kas 2026</span>
-                <span>%45 Hazır</span>
-              </div>
+
+              {isEditingExam ? (
+                <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <input type="text" value={examForm.name} onChange={e => setExamForm({...examForm, name: e.target.value})} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 10px', color: '#fff', fontSize: '0.8rem' }} placeholder="Sınav Adı" />
+                  <input type="date" value={examForm.date} onChange={e => setExamForm({...examForm, date: e.target.value})} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 10px', color: '#fff', fontSize: '0.8rem' }} />
+                  <button onClick={saveExam} className="btn btn-primary btn-sm" style={{ padding: '6px', fontSize: '0.8rem', justifyContent: 'center' }}>Kaydet</button>
+                </div>
+              ) : (
+                <div className="animate-fade">
+                  <h4 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f87171', marginBottom: '4px' }}>{daysRemaining} Days</h4>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{examInfo.name}</p>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '22px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                    <span>{new Date(examInfo.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <span>Hedef Odaklı</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
