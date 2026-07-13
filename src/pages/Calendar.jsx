@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 
+import { getQuizResults } from '../lib/supabase'
+
 const DAYS = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']
 
 export default function Calendar() {
@@ -54,41 +56,42 @@ export default function Calendar() {
 
   // Load AI recommendations from quiz history
   useEffect(() => {
-    try {
-      const historyStr = localStorage.getItem('studyforge_quiz_history')
-      if (historyStr) {
-        const history = JSON.parse(historyStr)
-        // Find recent wrong questions
-        const wrongTopics = new Set()
-        history.forEach(session => {
-          if (session.wrong_questions && session.wrong_questions.length > 0) {
-            session.wrong_questions.forEach(wq => {
-              // Extract a keyword or just use the question
-              const topic = wq.question.substring(0, 30) + '...'
-              wrongTopics.add(topic)
+    async function loadAIRecommendations() {
+      try {
+        const history = await getQuizResults()
+        if (history && history.length > 0) {
+          const wrongTopics = new Set()
+          history.forEach(session => {
+            if (session.wrong_questions && session.wrong_questions.length > 0) {
+              session.wrong_questions.forEach(wq => {
+                // Extract a keyword or just use the question
+                const topic = wq.question.substring(0, 30) + '...'
+                wrongTopics.add(topic)
+              })
+            }
+          })
+
+          if (wrongTopics.size > 0) {
+            const aiTasks = Array.from(wrongTopics).map((topic, index) => ({
+              id: `ai_${index}`,
+              title: `Tekrar: ${topic}`,
+              type: 'ai-recommendation',
+              color: '#f59e0b', // Amber for AI
+              isAi: true
+            }))
+            
+            setAvailableTasks(prev => {
+              const existingIds = new Set(prev.map(p => p.id))
+              const newTasks = aiTasks.filter(t => !existingIds.has(t.id))
+              return [...newTasks, ...prev]
             })
           }
-        })
-
-        if (wrongTopics.size > 0) {
-          const aiTasks = Array.from(wrongTopics).map((topic, index) => ({
-            id: `ai_${index}`,
-            title: `Tekrar: ${topic}`,
-            type: 'ai-recommendation',
-            color: '#f59e0b', // Amber for AI
-            isAi: true
-          }))
-          
-          setAvailableTasks(prev => {
-            const existingIds = new Set(prev.map(p => p.id))
-            const newTasks = aiTasks.filter(t => !existingIds.has(t.id))
-            return [...newTasks, ...prev]
-          })
         }
+      } catch(e) {
+        console.error('AI Task generation error:', e)
       }
-    } catch(e) {
-      console.error('AI Task generation error:', e)
     }
+    loadAIRecommendations()
   }, [])
 
   // Save calendar changes
