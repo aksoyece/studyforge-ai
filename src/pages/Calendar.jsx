@@ -3,12 +3,22 @@ import { useState, useEffect } from 'react'
 import { getQuizResults } from '../lib/supabase'
 
 const DAYS = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']
+const HOURS = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00', '21:00', '23:00']
 
 export default function Calendar() {
   const [calendarData, setCalendarData] = useState(() => {
     try {
       const saved = localStorage.getItem('studyforge_calendar')
-      if (saved) return JSON.parse(saved)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        // Migrate old tasks to have a timeSlot if they don't
+        Object.keys(parsed).forEach(day => {
+          parsed[day].forEach((t, i) => {
+            if (!t.timeSlot) t.timeSlot = HOURS[Math.min(i, HOURS.length - 1)]
+          })
+        })
+        return parsed
+      }
     } catch(e) {}
     // Initial empty week
     return {
@@ -99,20 +109,22 @@ export default function Calendar() {
     localStorage.setItem('studyforge_calendar', JSON.stringify(calendarData))
   }, [calendarData])
 
-  const handleDragStart = (e, task, sourceDay) => {
+  const handleDragStart = (e, task, sourceDay, sourceHour) => {
     e.dataTransfer.setData('task', JSON.stringify(task))
     e.dataTransfer.setData('sourceDay', sourceDay || 'sidebar')
+    if (sourceHour) e.dataTransfer.setData('sourceHour', sourceHour)
   }
 
-  const handleDrop = (e, targetDay) => {
+  const handleDrop = (e, targetDay, targetHour) => {
     e.preventDefault()
     const taskData = e.dataTransfer.getData('task')
     const sourceDay = e.dataTransfer.getData('sourceDay')
+    const sourceHour = e.dataTransfer.getData('sourceHour')
     if (!taskData) return
     
     const task = JSON.parse(taskData)
 
-    if (sourceDay === targetDay) return // Dropped in the same place
+    if (sourceDay === targetDay && sourceHour === targetHour) return // Dropped in the same place
 
     setCalendarData(prev => {
       const newData = { ...prev }
@@ -122,9 +134,14 @@ export default function Calendar() {
         newData[sourceDay] = newData[sourceDay].filter(t => t.id !== task.id)
       }
 
-      // Avoid duplicates in the same day
-      if (targetDay !== 'sidebar' && !newData[targetDay].find(t => t.id === task.id)) {
-        newData[targetDay] = [...newData[targetDay], task]
+      // Avoid duplicates in the same day (unless it's overwriting the timeSlot)
+      if (targetDay !== 'sidebar') {
+        // Remove existing task in that specific timeslot if any
+        newData[targetDay] = newData[targetDay].filter(t => t.timeSlot !== targetHour)
+        // Ensure the task doesn't exist elsewhere in the same day
+        newData[targetDay] = newData[targetDay].filter(t => t.id !== task.id)
+        
+        newData[targetDay] = [...newData[targetDay], { ...task, timeSlot: targetHour }]
       }
 
       return newData
@@ -216,12 +233,10 @@ export default function Calendar() {
         </div>
 
         {/* Calendar Grid */}
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '16px' }} className="animate-fade-up">
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px' }} className="animate-fade-up">
           {DAYS.map(day => (
             <div 
               key={day}
-              onDrop={(e) => handleDrop(e, day)}
-              onDragOver={handleDragOver}
               style={{
                 background: 'rgba(15, 23, 42, 0.6)',
                 border: '1px solid rgba(255,255,255,0.05)',
@@ -236,30 +251,51 @@ export default function Calendar() {
                 <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{day}</h4>
               </div>
               
-              <div style={{ flex: 1, padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {calendarData[day].map(task => (
-                  <div
-                    key={`${day}-${task.id}`}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, task, day)}
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      borderLeft: `3px solid ${task.color}`,
-                      padding: '10px',
-                      borderRadius: '6px',
-                      cursor: 'grab',
-                      fontSize: '0.85rem',
-                      fontWeight: 500,
-                      wordBreak: 'break-word',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px'
-                    }}
-                  >
-                    <span style={{ color: task.isAi ? '#fbbf24' : '#fff' }}>{task.title}</span>
-                    {task.isAi && <span style={{ fontSize: '0.65rem', color: '#f59e0b' }}>✨ Zayıf Konu</span>}
-                  </div>
-                ))}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                {HOURS.map(hour => {
+                  const taskInSlot = calendarData[day].find(t => t.timeSlot === hour)
+                  
+                  return (
+                    <div 
+                      key={`${day}-${hour}`}
+                      onDrop={(e) => handleDrop(e, day, hour)}
+                      onDragOver={handleDragOver}
+                      style={{
+                        minHeight: '75px',
+                        borderBottom: '1px solid rgba(255,255,255,0.02)',
+                        padding: '8px',
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }}
+                    >
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '6px' }}>{hour}</div>
+                      
+                      {taskInSlot && (
+                        <div
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, taskInSlot, day, hour)}
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            borderLeft: `3px solid ${taskInSlot.color}`,
+                            padding: '8px',
+                            borderRadius: '6px',
+                            cursor: 'grab',
+                            fontSize: '0.8rem',
+                            fontWeight: 500,
+                            wordBreak: 'break-word',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px',
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                          }}
+                        >
+                          <span style={{ color: taskInSlot.isAi ? '#fbbf24' : '#fff' }}>{taskInSlot.title}</span>
+                          {taskInSlot.isAi && <span style={{ fontSize: '0.65rem', color: '#f59e0b' }}>✨ Zayıf Konu</span>}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           ))}
