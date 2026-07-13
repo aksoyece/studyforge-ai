@@ -446,6 +446,21 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            {/* Widget 4: Exam Countdown */}
+            <div className="glass-panel" style={{ padding: '24px', textAlign: 'left', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(0, 0, 0, 0.2))', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fca5a5', textTransform: 'uppercase' }}>UPCOMING EXAM</span>
+                <span style={{ fontSize: '1.2rem' }}>🎯</span>
+              </div>
+              <h4 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f87171', marginBottom: '4px' }}>14 Days</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Veri Yapıları Vize Sınavı</p>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '22px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                <span>12 Kas 2026</span>
+                <span>%45 Hazır</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>

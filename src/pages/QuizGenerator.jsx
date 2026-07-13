@@ -240,8 +240,29 @@ export default function QuizGenerator() {
   ])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  const [loadingText, setLoadingText] = useState('PDF verileri çıkarılıyor...')
+  const [loadingProgress, setLoadingProgress] = useState(0)
 
   const messagesEndRef = useRef(null)
+
+  useEffect(() => {
+    let interval;
+    if (phase === 'extracting') {
+      setLoadingProgress(0)
+      setLoadingText('Metin ayrıştırılıyor...')
+      interval = setInterval(() => {
+        setLoadingProgress(p => {
+          const next = p + (Math.random() * 3 + 1); // 1 to 4 percent bump
+          const capped = next > 95 ? 95 : next;
+          if (p < 30 && capped >= 30) setLoadingText('Önemli kavramlar çıkarılıyor...')
+          if (p < 60 && capped >= 60) setLoadingText('Bilgi kartları hazırlanıyor...')
+          if (p < 80 && capped >= 80) setLoadingText('Soru bankası oluşturuluyor...')
+          return capped;
+        })
+      }, 400) 
+    }
+    return () => clearInterval(interval)
+  }, [phase])
 
   useEffect(() => {
     if (studyMode === 'chat') {
@@ -557,10 +578,17 @@ export default function QuizGenerator() {
 
         {/* Extracting Phase */}
         {phase === 'extracting' && (
-          <div className="card loading-state">
-            <div className="spinner" style={{ borderTopColor: 'var(--accent-cyan)' }} />
-            <p>PDF verileri çıkarılıyor ve çalışma materyalleri AI ile tasarlanıyor...</p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Bu işlem 15–20 saniye sürebilir</p>
+          <div className="card loading-state animate-fade-up" style={{ maxWidth: '500px', margin: '40px auto', padding: '40px', textAlign: 'center' }}>
+            <div className="spinner" style={{ borderTopColor: 'var(--accent-cyan)', width: '60px', height: '60px', borderWidth: '4px', margin: '0 auto 24px' }} />
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '12px' }}>{loadingText}</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '32px' }}>Lütfen bekleyin, yapay zeka analiz yapıyor...</p>
+            
+            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: `${loadingProgress}%`, height: '100%', background: 'var(--gradient-cyan)', transition: 'width 0.4s ease-out' }} />
+            </div>
+            <div style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--accent-cyan)', marginTop: '8px', fontWeight: 700 }}>
+              {Math.round(loadingProgress)}%
+            </div>
           </div>
         )}
 

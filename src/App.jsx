@@ -6,6 +6,7 @@ import QuizGenerator from './pages/QuizGenerator'
 import Auth from './pages/Auth'
 import Profile from './pages/Profile'
 import RecoveryWorkspace from './pages/RecoveryWorkspace'
+import FloatingAssistant from './components/FloatingAssistant'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import './index.css'
 
@@ -108,6 +109,7 @@ export default function App() {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/recovery" element={<ProtectedRoute><RecoveryWorkspace /></ProtectedRoute>} />
         </Routes>
+        <FloatingAssistant />
       </BrowserRouter>
     </AuthProvider>
   )
