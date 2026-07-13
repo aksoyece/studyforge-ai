@@ -269,11 +269,12 @@ export default function Calendar() {
                       onDrop={(e) => handleDrop(e, day, hour)}
                       onDragOver={handleDragOver}
                       style={{
-                        minHeight: '75px',
+                        height: '110px',
                         borderBottom: '1px solid rgba(255,255,255,0.02)',
                         padding: '8px',
                         display: 'flex',
-                        flexDirection: 'column'
+                        flexDirection: 'column',
+                        overflow: 'hidden'
                       }}
                     >
                       <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '6px' }}>{hour}</div>
@@ -294,7 +295,9 @@ export default function Calendar() {
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '4px',
-                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                            flex: 1,
+                            overflow: 'hidden'
                           }}
                         >
                           <span style={{ color: taskInSlot.isAi ? '#fbbf24' : '#fff' }}>{taskInSlot.title}</span>
