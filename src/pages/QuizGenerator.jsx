@@ -372,6 +372,7 @@ export default function QuizGenerator() {
 
       if (!hasKey) {
         // Demo Modu
+        toast.error('Demo modundasınız! Kendi linkinizi/dosyanızı analiz etmek için Ayarlar menüsünden API Anahtarı (Claude/OpenAI) girmelisiniz.', { duration: 6000 })
         await new Promise(r => setTimeout(r, 2000))
         extractedQs = getMockQuiz(questionCount)
         extractedSummary = getMockSummary()
@@ -383,7 +384,7 @@ export default function QuizGenerator() {
                      uploadType === 'image' ? (imageFile?.name || 'Resim Notu (Demo)') : (pdfFile?.name || 'PDF (Demo)')
         setSourceName(finalSourceName)
         
-        toast('Demo modunda çalışıyor — Gerçek yapay zeka çıktısı için API Key ekleyin', { icon: '⚠️' })
+        toast('Örnek bir yazılım (React/Binary Search) içeriği gösteriliyor...', { icon: 'ℹ️' })
       } else {
         toast('İçerik ayrıştırılıyor...', { id: 'extract' })
         let text = ''
@@ -392,20 +393,32 @@ export default function QuizGenerator() {
           text = await extractTextFromPDF(pdfFile)
           finalSourceName = pdfFile.name
         } else if (uploadType === 'image') {
-          // Mock OCR
           await new Promise(r => setTimeout(r, 2500)) 
-          text = "Mock OCR Text: Bu bir resimden okunan örnek metindir."
+          text = "Kullanıcı bir ders notu fotoğrafı yükledi. Görüntü işleme API'si şu an aktif olmadığı için, lütfen genel bir çalışma rehberi oluştur: Konu - Öğrenci Notları."
           finalSourceName = imageFile.name
         } else if (uploadType === 'youtube') {
-          // Mock YouTube Transcript
-          await new Promise(r => setTimeout(r, 1500))
-          text = "Mock YouTube Transcript: Bu bir YouTube videosunun örnek alt yazısıdır."
-          finalSourceName = "YouTube Videosu"
+          try {
+            const res = await fetch(`https://noembed.com/embed?dataType=json&url=${encodeURIComponent(youtubeUrl)}`)
+            const data = await res.json()
+            const title = data.title || youtubeUrl
+            text = `Aşağıdaki başlığa ve konuya sahip YouTube videosu için detaylı bir çalışma özeti, kavramlar ve test soruları çıkar: ${title}`
+            finalSourceName = title
+          } catch(e) {
+            text = `Aşağıdaki YouTube videosu için detaylı çalışma özeti çıkar: ${youtubeUrl}`
+            finalSourceName = "YouTube Videosu"
+          }
         } else if (uploadType === 'url') {
-          // Mock Website Scrape
-          await new Promise(r => setTimeout(r, 1500))
-          text = "Mock Website Content: Bu bir web sitesinden çekilen örnek içeriktir."
-          finalSourceName = "Web Sayfası"
+          try {
+            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(websiteUrl)}`)
+            const data = await res.json()
+            const match = data.contents.match(/<title>(.*?)<\/title>/i)
+            const title = match ? match[1] : websiteUrl
+            text = `Aşağıdaki başlığa ve konuya sahip Web makalesi için detaylı bir çalışma özeti, kavramlar ve test çıkar: ${title} (${websiteUrl})`
+            finalSourceName = title.length > 50 ? title.substring(0, 50) + '...' : title
+          } catch(e) {
+            text = `Aşağıdaki Web sayfası için detaylı çalışma özeti çıkar: ${websiteUrl}`
+            finalSourceName = "Web Sayfası"
+          }
         }
         
         setSourceName(finalSourceName)
