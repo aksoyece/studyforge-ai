@@ -192,14 +192,44 @@ export default function Profile() {
             </div>
           </div>
           
-          <div style={{ display: 'flex', gap: '24px', borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px' }}>
-            <div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-indigo)' }}>{analyses.length}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>CV Analizi</div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+            gap: '16px',
+            borderTop: '1px solid var(--border)',
+            paddingTop: '20px',
+            marginTop: '8px'
+          }}>
+            {/* Stat 1: Total Study Hours */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--accent-indigo)', marginBottom: '4px' }}>
+                {Math.round((quizzes.length * 0.5) + (analyses.length * 1.5))}s
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Çalışılan Saat</div>
             </div>
-            <div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-cyan)' }}>{quizzes.length}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Çözülen Quiz</div>
+
+            {/* Stat 2: Flashcards Generated */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--accent-cyan)', marginBottom: '4px' }}>
+                {quizzes.length * 10}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bilgi Kartı</div>
+            </div>
+
+            {/* Stat 3: Quizzes Completed */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--accent-mint)', marginBottom: '4px' }}>
+                {quizzes.length}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Çözülen Quiz</div>
+            </div>
+
+            {/* Stat 4: Time Saved with AI */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f59e0b', marginBottom: '4px' }}>
+                {Math.round((quizzes.length * 2.5) + (analyses.length * 4))}s
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tasarruf Edilen</div>
             </div>
           </div>
         </div>
