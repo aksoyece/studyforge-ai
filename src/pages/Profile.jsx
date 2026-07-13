@@ -350,7 +350,7 @@ export default function Profile() {
             </div>
 
             {/* Badge 3: 10 Hours */}
-            <div className={`achievement-badge ${((quizzes?.length || 0) + (cvAnalyses?.length || 0)) >= 3 ? 'unlocked' : 'locked'}`} title={((quizzes?.length || 0) + (cvAnalyses?.length || 0)) >= 3 ? '10 saatin üzerinde çalışma süresine ulaştın!' : 'Kilidi açmak için toplam çalışma oturumunuzu artırın.'}>
+            <div className={`achievement-badge ${((quizzes?.length || 0) + (analyses?.length || 0)) >= 3 ? 'unlocked' : 'locked'}`} title={((quizzes?.length || 0) + (analyses?.length || 0)) >= 3 ? '10 saatin üzerinde çalışma süresine ulaştın!' : 'Kilidi açmak için toplam çalışma oturumunuzu artırın.'}>
               <div className="badge-icon-wrapper">⏱️</div>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '4px' }}>10 Hours</span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Çalışma Süresi</span>
