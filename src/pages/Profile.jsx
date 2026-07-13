@@ -336,28 +336,28 @@ export default function Profile() {
             gap: '16px'
           }}>
             {/* Badge 1: First Exam */}
-            <div className={`achievement-badge ${quizzes.length > 0 ? 'unlocked' : 'locked'}`} title={quizzes.length > 0 ? 'İlk quiz sınavını başarıyla tamamladın!' : 'Kilidi açmak için ilk quiz sınavını çözün.'}>
+            <div className={`achievement-badge ${(quizzes?.length || 0) > 0 ? 'unlocked' : 'locked'}`} title={(quizzes?.length || 0) > 0 ? 'İlk quiz sınavını başarıyla tamamladın!' : 'Kilidi açmak için ilk quiz sınavını çözün.'}>
               <div className="badge-icon-wrapper">🎓</div>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '4px' }}>First Exam</span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>İlk Sınav</span>
             </div>
 
             {/* Badge 2: 100 Flashcards */}
-            <div className={`achievement-badge ${quizzes.length * 5 >= 15 ? 'unlocked' : 'locked'}`} title={quizzes.length * 5 >= 15 ? '100den fazla bilgi kartı (flashcard) çalışıldı!' : 'Kilidi açmak için daha fazla ders belgesi yükleyin ve flashcard çalışın.'}>
+            <div className={`achievement-badge ${(quizzes?.length || 0) * 5 >= 15 ? 'unlocked' : 'locked'}`} title={(quizzes?.length || 0) * 5 >= 15 ? '100den fazla bilgi kartı (flashcard) çalışıldı!' : 'Kilidi açmak için daha fazla ders belgesi yükleyin ve flashcard çalışın.'}>
               <div className="badge-icon-wrapper">🏅</div>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '4px' }}>Scholar</span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Öğrenim Kartları</span>
             </div>
 
             {/* Badge 3: 10 Hours */}
-            <div className={`achievement-badge ${(quizzes.length + cvAnalyses.length) >= 3 ? 'unlocked' : 'locked'}`} title={(quizzes.length + cvAnalyses.length) >= 3 ? '10 saatin üzerinde çalışma süresine ulaştın!' : 'Kilidi açmak için toplam çalışma oturumunuzu artırın.'}>
+            <div className={`achievement-badge ${((quizzes?.length || 0) + (cvAnalyses?.length || 0)) >= 3 ? 'unlocked' : 'locked'}`} title={((quizzes?.length || 0) + (cvAnalyses?.length || 0)) >= 3 ? '10 saatin üzerinde çalışma süresine ulaştın!' : 'Kilidi açmak için toplam çalışma oturumunuzu artırın.'}>
               <div className="badge-icon-wrapper">⏱️</div>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '4px' }}>10 Hours</span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Çalışma Süresi</span>
             </div>
 
             {/* Badge 4: 7 Day Streak */}
-            <div className={`achievement-badge ${streak >= 7 ? 'unlocked' : 'locked'}`} title={streak >= 7 ? 'Harika! 7 günlük çalışma serisini tamamladın.' : 'Kilidi açmak için 7 gün üst üste aktif kalın.'}>
+            <div className={`achievement-badge ${(streak || 0) >= 7 ? 'unlocked' : 'locked'}`} title={(streak || 0) >= 7 ? 'Harika! 7 günlük çalışma serisini tamamladın.' : 'Kilidi açmak için 7 gün üst üste aktif kalın.'}>
               <div className="badge-icon-wrapper">⚡</div>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '4px' }}>7 Day Streak</span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Haftalık Seri</span>
@@ -365,7 +365,8 @@ export default function Profile() {
 
             {/* Badge 5: Night Owl */}
             <div className={`achievement-badge ${
-              quizzes.some(q => {
+              (quizzes || []).some(q => {
+                if (!q.created_at) return false
                 const hour = new Date(q.created_at).getHours()
                 return hour >= 0 && hour <= 5
               }) ? 'unlocked' : 'locked'
