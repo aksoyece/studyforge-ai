@@ -222,6 +222,13 @@ export default function QuizGenerator() {
   const [phase, setPhase] = useState('setup') // setup | extracting | workspace
   const [studyMode, setStudyMode] = useState('summary') // summary | flashcards | quiz
   
+  // Upload Types
+  const [uploadType, setUploadType] = useState('pdf') // pdf | youtube | url | image
+  const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [websiteUrl, setWebsiteUrl] = useState('')
+  const [imageFile, setImageFile] = useState(null)
+  const [sourceName, setSourceName] = useState('')
+
   const [pdfFile, setPdfFile] = useState(null)
   const [pdfText, setPdfText] = useState('')
   const [questionCount, setQuestionCount] = useState(5)
@@ -333,17 +340,27 @@ export default function QuizGenerator() {
   const onDrop = useCallback(async (accepted) => {
     if (!accepted.length) return
     const file = accepted[0]
-    if (file.type !== 'application/pdf') { toast.error('Lütfen geçerli bir PDF yükleyin'); return }
-    setPdfFile(file)
-    toast.success(`"${file.name}" yüklendi!`)
-  }, [])
+    if (uploadType === 'image') {
+      if (!file.type.startsWith('image/')) { toast.error('Lütfen geçerli bir resim yükleyin'); return }
+      setImageFile(file)
+      toast.success(`"${file.name}" yüklendi!`)
+    } else {
+      if (file.type !== 'application/pdf') { toast.error('Lütfen geçerli bir PDF yükleyin'); return }
+      setPdfFile(file)
+      toast.success(`"${file.name}" yüklendi!`)
+    }
+  }, [uploadType])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop, accept: { 'application/pdf': ['.pdf'] }, multiple: false,
+    onDrop, accept: uploadType === 'image' ? { 'image/*': ['.png', '.jpg', '.jpeg', '.webp'] } : { 'application/pdf': ['.pdf'] }, multiple: false,
   })
 
   async function handleGenerate() {
-    if (!pdfFile) { toast.error('Lütfen bir PDF dosyası sürükleyin.'); return }
+    if (uploadType === 'pdf' && !pdfFile) { toast.error('Lütfen bir PDF dosyası sürükleyin.'); return }
+    if (uploadType === 'image' && !imageFile) { toast.error('Lütfen bir resim dosyası sürükleyin.'); return }
+    if (uploadType === 'youtube' && !youtubeUrl) { toast.error('Lütfen bir YouTube linki girin.'); return }
+    if (uploadType === 'url' && !websiteUrl) { toast.error('Lütfen bir web sitesi linki girin.'); return }
+    
     setPhase('extracting')
     setIsDemoMode(false)
 
@@ -351,6 +368,7 @@ export default function QuizGenerator() {
       let extractedQs = []
       let extractedSummary = ''
       let extractedFlashcards = []
+      let finalSourceName = 'Untitled Document'
 
       if (!hasKey) {
         // Demo Modu
@@ -359,10 +377,38 @@ export default function QuizGenerator() {
         extractedSummary = getMockSummary()
         extractedFlashcards = getMockFlashcards()
         setIsDemoMode(true)
+        
+        finalSourceName = uploadType === 'youtube' ? 'YouTube Video (Demo)' : 
+                     uploadType === 'url' ? 'Web Makalesi (Demo)' : 
+                     uploadType === 'image' ? (imageFile?.name || 'Resim Notu (Demo)') : (pdfFile?.name || 'PDF (Demo)')
+        setSourceName(finalSourceName)
+        
         toast('Demo modunda çalışıyor — Gerçek yapay zeka çıktısı için API Key ekleyin', { icon: '⚠️' })
       } else {
-        toast('PDF metni ayrıştırılıyor...', { id: 'extract' })
-        const text = await extractTextFromPDF(pdfFile)
+        toast('İçerik ayrıştırılıyor...', { id: 'extract' })
+        let text = ''
+        
+        if (uploadType === 'pdf') {
+          text = await extractTextFromPDF(pdfFile)
+          finalSourceName = pdfFile.name
+        } else if (uploadType === 'image') {
+          // Mock OCR
+          await new Promise(r => setTimeout(r, 2500)) 
+          text = "Mock OCR Text: Bu bir resimden okunan örnek metindir."
+          finalSourceName = imageFile.name
+        } else if (uploadType === 'youtube') {
+          // Mock YouTube Transcript
+          await new Promise(r => setTimeout(r, 1500))
+          text = "Mock YouTube Transcript: Bu bir YouTube videosunun örnek alt yazısıdır."
+          finalSourceName = "YouTube Videosu"
+        } else if (uploadType === 'url') {
+          // Mock Website Scrape
+          await new Promise(r => setTimeout(r, 1500))
+          text = "Mock Website Content: Bu bir web sitesinden çekilen örnek içeriktir."
+          finalSourceName = "Web Sayfası"
+        }
+        
+        setSourceName(finalSourceName)
         setPdfText(text)
         
         toast.loading('Çalışma alanınız AI ile oluşturuluyor...', { id: 'extract' })
@@ -399,13 +445,13 @@ export default function QuizGenerator() {
 
       // Oturumu kaydet
       await saveQuizSession({
-        pdf_name: pdfFile.name,
+        pdf_name: finalSourceName,
         questions: { qs: extractedQs, summary: extractedSummary, flashcards: extractedFlashcards },
         ai_provider: isDemoMode ? 'demo' : provider,
       })
       loadHistory()
       setPhase('workspace')
-      setStudyMode('summary') // Varsayılan olarak özet sekmesini aç
+      setStudyMode('summary')
     } catch (err) {
       console.error('Study generation error:', err)
       toast.dismiss('extract')
@@ -425,8 +471,12 @@ export default function QuizGenerator() {
       setQuizFinished(false)
       setIsDemoMode(true)
 
+      let finalSourceName = uploadType === 'pdf' ? (pdfFile?.name || 'Error Doc') : 
+                            uploadType === 'image' ? (imageFile?.name || 'Error Image') : 'Error Content'
+      setSourceName(finalSourceName)
+
       await saveQuizSession({
-        pdf_name: pdfFile.name,
+        pdf_name: finalSourceName,
         questions: { qs: mockQs, summary: mockSummary, flashcards: mockCards },
         ai_provider: 'demo',
       })
@@ -453,7 +503,7 @@ export default function QuizGenerator() {
       setQuizFinished(true)
       // Save quiz results (wrong questions and score metadata)
       await saveQuizResult({
-        pdf_name: pdfFile?.name || 'Untitled Document',
+        pdf_name: sourceName || 'Untitled Document',
         score: correct ? score + 1 : score,
         total_questions: questions.length,
         wrong_questions: newWrong,
@@ -467,6 +517,10 @@ export default function QuizGenerator() {
   function handleRetake() {
     setPhase('setup')
     setPdfFile(null)
+    setImageFile(null)
+    setYoutubeUrl('')
+    setWebsiteUrl('')
+    setSourceName('')
     setQuestions([])
     setSummary('')
     setFlashcards([])
@@ -524,26 +578,72 @@ export default function QuizGenerator() {
               </div>
             </div>
 
-            {/* Dropzone */}
-            <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''}`}>
-              <input {...getInputProps()} />
-              <div className="dropzone-icon" style={{ fontSize: '2.5rem' }}>{pdfFile ? '📄' : '📁'}</div>
-              {pdfFile ? (
-                <>
-                  <div className="dropzone-title" style={{ color: 'var(--accent-mint)' }}>
-                    {pdfFile.name}
-                  </div>
-                  <div className="dropzone-sub">
-                    {(pdfFile.size / 1024).toFixed(1)} KB · Değiştirmek için sürükleyin veya tıklayın
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="dropzone-title">PDF Dosyanızı Buraya Sürükleyin</div>
-                  <div className="dropzone-sub">veya taramak için tıklayın · Sadece PDF formatı</div>
-                </>
-              )}
+            {/* Upload Type Tabs */}
+            <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '8px' }}>
+              {[ 
+                { id: 'pdf', label: 'PDF', icon: '📄' },
+                { id: 'youtube', label: 'YouTube', icon: '▶️' },
+                { id: 'url', label: 'Website', icon: '🌐' },
+                { id: 'image', label: 'Foto (OCR)', icon: '📸' }
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setUploadType(t.id)}
+                  style={{
+                    flex: 1, padding: '10px 0', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                    background: uploadType === t.id ? 'var(--gradient-cyan)' : 'transparent',
+                    color: uploadType === t.id ? '#fff' : 'var(--text-secondary)',
+                    fontWeight: 600, fontSize: '0.85rem', transition: 'all 0.2s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                  }}
+                >
+                  <span style={{ fontSize: '1.1rem' }}>{t.icon}</span> {t.label}
+                </button>
+              ))}
             </div>
+
+            {/* Input Area */}
+            {(uploadType === 'pdf' || uploadType === 'image') && (
+              <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''}`}>
+                <input {...getInputProps()} />
+                <div className="dropzone-icon" style={{ fontSize: '2.5rem' }}>
+                  {(uploadType === 'pdf' ? pdfFile : imageFile) ? '📄' : '📁'}
+                </div>
+                {(uploadType === 'pdf' ? pdfFile : imageFile) ? (
+                  <>
+                    <div className="dropzone-title" style={{ color: 'var(--accent-mint)' }}>
+                      {(uploadType === 'pdf' ? pdfFile : imageFile).name}
+                    </div>
+                    <div className="dropzone-sub">
+                      {((uploadType === 'pdf' ? pdfFile : imageFile).size / 1024).toFixed(1)} KB · Değiştirmek için sürükleyin veya tıklayın
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="dropzone-title">
+                      {uploadType === 'pdf' ? 'PDF Dosyanızı Buraya Sürükleyin' : 'Not Fotoğrafınızı Sürükleyin'}
+                    </div>
+                    <div className="dropzone-sub">
+                      {uploadType === 'pdf' ? 'veya taramak için tıklayın · Sadece PDF formatı' : 'veya taramak için tıklayın · OCR destekli'}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {uploadType === 'youtube' && (
+              <div className="form-group animate-fade" style={{ marginBottom: 0 }}>
+                <input type="url" className="form-input" placeholder="https://www.youtube.com/watch?v=..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} style={{ padding: '16px', fontSize: '1rem' }} />
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>Yapay zeka videonun alt yazılarını okuyup otomatik özet çıkaracaktır. Sadece transkripti olan videolar desteklenir.</p>
+              </div>
+            )}
+
+            {uploadType === 'url' && (
+              <div className="form-group animate-fade" style={{ marginBottom: 0 }}>
+                <input type="url" className="form-input" placeholder="https://tr.wikipedia.org/wiki/..." value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} style={{ padding: '16px', fontSize: '1rem' }} />
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>Web sitesindeki ana metin otomatik olarak ayrıştırılacaktır.</p>
+              </div>
+            )}
 
             {/* Settings */}
             <div className="card">
