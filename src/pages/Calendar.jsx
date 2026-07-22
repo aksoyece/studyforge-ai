@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { getQuizResults } from '../lib/supabase'
 
 const DAYS = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']
-const HOURS = [
+const DEFAULT_HOURS = [
   '09:00 - 10:00', 
   '11:00 - 12:00', 
   '13:00 - 14:00', 
@@ -23,7 +23,7 @@ export default function Calendar() {
         // Migrate old tasks to have a timeSlot if they don't
         Object.keys(parsed).forEach(day => {
           parsed[day].forEach((t, i) => {
-            if (!t.timeSlot) t.timeSlot = HOURS[Math.min(i, HOURS.length - 1)]
+            if (!t.timeSlot) t.timeSlot = DEFAULT_HOURS[Math.min(i, DEFAULT_HOURS.length - 1)]
           })
         })
         return parsed
@@ -40,6 +40,37 @@ export default function Calendar() {
       'Pazar': []
     }
   })
+
+  const [timeSlots, setTimeSlots] = useState(() => {
+    try {
+      const saved = localStorage.getItem('studyforge_timeslots')
+      if (saved) return JSON.parse(saved)
+    } catch(e) {}
+    return DEFAULT_HOURS
+  })
+
+  useEffect(() => {
+    localStorage.setItem('studyforge_timeslots', JSON.stringify(timeSlots))
+  }, [timeSlots])
+
+  const [newTimeSlotName, setNewTimeSlotName] = useState('')
+  const [newTimeSlotTime, setNewTimeSlotTime] = useState('')
+
+  const handleAddTimeSlot = (e) => {
+    e.preventDefault()
+    if (!newTimeSlotTime.trim()) return
+    
+    let finalSlotText = newTimeSlotTime.trim()
+    if (newTimeSlotName.trim()) {
+      finalSlotText = `${newTimeSlotName.trim()} (${finalSlotText})`
+    }
+
+    if (!timeSlots.includes(finalSlotText)) {
+      setTimeSlots(prev => [...prev, finalSlotText])
+    }
+    setNewTimeSlotName('')
+    setNewTimeSlotTime('')
+  }
 
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [availableTasks, setAvailableTasks] = useState(() => {
@@ -239,6 +270,36 @@ export default function Calendar() {
               </div>
             ))}
           </div>
+          
+          <div style={{ marginTop: '32px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '24px' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🕒</span> Özel Saat Ekle
+            </h3>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+              Gece vardiyası veya esnek çalışma saatleri için takvime yeni saat dilimleri (Örn: 03:00 - 04:00) ekleyebilirsiniz.
+            </p>
+            <form onSubmit={handleAddTimeSlot} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <input 
+                type="text" 
+                value={newTimeSlotName}
+                onChange={(e) => setNewTimeSlotName(e.target.value)}
+                placeholder="İsim (Örn: Gece Mesaisi)" 
+                className="form-input" 
+                style={{ padding: '8px 12px', fontSize: '0.85rem', marginBottom: 0 }} 
+              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  value={newTimeSlotTime}
+                  onChange={(e) => setNewTimeSlotTime(e.target.value)}
+                  placeholder="Saat (Örn: 03:00 - 04:00)" 
+                  className="form-input" 
+                  style={{ flex: 1, padding: '8px 12px', fontSize: '0.85rem', marginBottom: 0 }} 
+                />
+                <button type="submit" className="btn btn-secondary btn-sm" style={{ padding: '8px 12px' }}>Ekle</button>
+              </div>
+            </form>
+          </div>
         </div>
 
         {/* Calendar Grid */}
@@ -261,7 +322,7 @@ export default function Calendar() {
               </div>
               
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                {HOURS.map(hour => {
+                {timeSlots.map(hour => {
                   const taskInSlot = calendarData[day].find(t => t.timeSlot === hour)
                   
                   return (
