@@ -59,8 +59,21 @@ Fill in `.env`:
 ```
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_ANTHROPIC_API_KEY=your_claude_api_key
-VITE_OPENAI_API_KEY=your_openai_api_key
+```
+
+### 3. Edge Function (AI Proxy) Setup
+This project uses a Supabase Edge Function to securely handle AI requests and hide API keys from the client.
+
+1. Install Supabase CLI and login.
+2. Link your project: `supabase link --project-ref your_project_ref`
+3. Set your AI API keys as Supabase Secrets:
+```bash
+supabase secrets set ANTHROPIC_API_KEY=sk-ant-xxx
+supabase secrets set OPENAI_API_KEY=sk-xxx
+```
+4. Deploy the function:
+```bash
+supabase functions deploy ai-proxy
 ```
 
 ### 3. Supabase — create tables
