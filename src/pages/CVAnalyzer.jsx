@@ -379,14 +379,14 @@ export default function CVAnalyzer() {
             <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>CV Analyzer</h1>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Paste your CV and a job description. Get an AI-powered match score and actionable insights.
+            CV'nizi ve bir iş ilanını yapıştırın. Yapay zeka destekli eşleşme skoru ve kariyer tavsiyeleri alın.
           </p>
         </div>
 
         {!hasKey && (
           <div className="demo-banner">
             <span>⚠️</span>
-            <span>No API key detected — analysis will run in <strong>demo mode</strong> with simulated results.</span>
+            <span>API anahtarı bulunamadı — analiz <strong>demo modunda</strong> (örnek verilerle) çalışacaktır.</span>
           </div>
         )}
 
@@ -395,7 +395,7 @@ export default function CVAnalyzer() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* AI Toggle */}
             <div className="card" style={{ padding: '20px' }}>
-              <p className="section-title" style={{ marginBottom: '12px' }}>AI Provider</p>
+              <p className="section-title" style={{ marginBottom: '12px' }}>Yapay Zeka Modeli</p>
               <div className="ai-toggle">
                 <button
                   className={`ai-toggle-btn ${provider === 'claude' ? 'active' : ''}`}
@@ -414,19 +414,19 @@ export default function CVAnalyzer() {
 
             {/* Job Info */}
             <div className="card">
-              <p className="section-title" style={{ marginBottom: '16px' }}>Job Details</p>
+              <p className="section-title" style={{ marginBottom: '16px' }}>İş Detayları</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div className="form-group">
-                  <label className="form-label">Job Title</label>
+                  <label className="form-label">İş Pozisyonu</label>
                   <input
                     className="form-input"
-                    placeholder="e.g. Software Engineer Intern"
+                    placeholder="Örn: Yazılım Stajyeri, Frontend Developer"
                     value={jobTitle}
                     onChange={e => setJobTitle(e.target.value)}
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Job Description *</label>
+                  <label className="form-label">İş Tanımı *</label>
                   <textarea
                     className="form-textarea"
                     placeholder="Paste the full job description here..."

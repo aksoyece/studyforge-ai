@@ -303,12 +303,13 @@ export default function Calendar() {
         </div>
 
         {/* Calendar Grid */}
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px' }} className="animate-fade-up">
-          {DAYS.map(day => (
-            <div 
-              key={day}
-              style={{
-                background: 'rgba(15, 23, 42, 0.6)',
+        <div className="animate-fade-up" style={{ flex: 1, width: '100%', overflowX: 'auto', paddingBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px', minWidth: '850px' }}>
+            {DAYS.map(day => (
+              <div 
+                key={day}
+                style={{
+                  background: 'rgba(15, 23, 42, 0.6)',
                 border: '1px solid rgba(255,255,255,0.05)',
                 borderRadius: '12px',
                 minHeight: '600px',
@@ -372,6 +373,7 @@ export default function Calendar() {
               </div>
             </div>
           ))}
+          </div>
         </div>
 
       </div>

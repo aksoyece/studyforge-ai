@@ -60,7 +60,7 @@ function Navbar() {
       </button>
 
       <div className={`navbar-links ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
-        <button className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} onClick={() => handleNav('/')}>Home</button>
+        <button className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} onClick={() => handleNav('/')}>Ana Sayfa</button>
         <button className={`nav-link ${location.pathname === '/cv' ? 'active' : ''}`} onClick={() => handleNav('/cv')}>CV Analyzer</button>
         <button className={`nav-link ${location.pathname === '/quiz' ? 'active' : ''}`} onClick={() => handleNav('/quiz')}>Study Workspace</button>
         <button className={`nav-link ${location.pathname === '/calendar' ? 'active' : ''}`} onClick={() => handleNav('/calendar')}>Study Calendar</button>
