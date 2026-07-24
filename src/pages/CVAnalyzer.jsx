@@ -8,7 +8,6 @@ import { getMockCVAnalysis } from '../lib/mockAI'
 import { extractTextFromPDF } from '../lib/pdfExtract'
 import { useAuth } from '../context/AuthContext'
 
-// Extract text from Word (.docx)
 async function extractFromWord(file) {
   const mammoth = (await import('mammoth')).default
   const arrayBuffer = await file.arrayBuffer()
@@ -16,7 +15,6 @@ async function extractFromWord(file) {
   return result.value.trim()
 }
 
-// CV Upload Dropzone Component
 function CVUploadZone({ onExtracted, onClear, fileLoaded }) {
   const [uploading, setUploading] = useState(false)
   const [uploadedFile, setUploadedFile] = useState(null)
@@ -71,7 +69,6 @@ function CVUploadZone({ onExtracted, onClear, fileLoaded }) {
     multiple: false,
   })
 
-  // File loaded success state
   if (uploadedFile && fileLoaded) {
     return (
       <div style={{
@@ -131,7 +128,6 @@ function CVUploadZone({ onExtracted, onClear, fileLoaded }) {
   )
 }
 
-// ── Progress Ring ────────────────────────────────────────────────
 function ProgressRing({ score, size = 120, strokeWidth = 10 }) {
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
@@ -158,13 +154,11 @@ function ProgressRing({ score, size = 120, strokeWidth = 10 }) {
   )
 }
 
-// ── Result Dashboard ──────────────────────────────────────────────
 function ResultDashboard({ result, provider }) {
   const [showCover, setShowCover] = useState(false)
 
   return (
     <div className="animate-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Score + Summary */}
       <div className="card" style={{
         background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08))',
         border: '1px solid rgba(99,102,241,0.2)',
@@ -177,7 +171,7 @@ function ResultDashboard({ result, provider }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
               <h2 style={{ fontSize: '1.3rem' }}>Analysis Complete</h2>
               <span className={`badge ${provider === 'claude' ? 'badge-indigo' : 'badge-mint'}`}>
-                {provider === 'claude' ? '🤖 Claude' : '🟢 GPT-4o'}
+                {provider === 'claude' ? '🤖 Claude' : provider === 'openai' ? '🟢 GPT-4o' : '🧪 Demo'}
               </span>
             </div>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.7 }}>
@@ -188,7 +182,6 @@ function ResultDashboard({ result, provider }) {
       </div>
 
       <div className="grid-2">
-        {/* Strengths */}
         <div className="card">
           <p className="section-title" style={{ color: 'var(--accent-mint)' }}>✅ Strengths</p>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -201,7 +194,6 @@ function ResultDashboard({ result, provider }) {
           </ul>
         </div>
 
-        {/* Gaps */}
         <div className="card">
           <p className="section-title" style={{ color: 'var(--accent-rose)' }}>⚠️ Gaps</p>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -215,7 +207,6 @@ function ResultDashboard({ result, provider }) {
         </div>
       </div>
 
-      {/* Missing Keywords */}
       <div className="card">
         <p className="section-title">💡 Missing Keywords</p>
         <div>
@@ -225,7 +216,6 @@ function ResultDashboard({ result, provider }) {
         </div>
       </div>
 
-      {/* Suggestions */}
       <div className="card">
         <p className="section-title">📝 Suggestions</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -247,7 +237,6 @@ function ResultDashboard({ result, provider }) {
         </div>
       </div>
 
-      {/* Cover Letter */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <p className="section-title" style={{ marginBottom: 0 }}>✉️ Cover Letter Opening</p>
@@ -269,7 +258,6 @@ function ResultDashboard({ result, provider }) {
   )
 }
 
-// ── Main Page ─────────────────────────────────────────────────────
 export default function CVAnalyzer() {
   const { user } = useAuth()
   const [cvText, setCvText] = useState('')
@@ -280,12 +268,6 @@ export default function CVAnalyzer() {
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState([])
   const [isDemoMode, setIsDemoMode] = useState(false)
-
-  const CLAUDE_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
-  const OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY
-  const hasKey = provider === 'claude'
-    ? (CLAUDE_KEY && CLAUDE_KEY !== 'your_claude_api_key_here')
-    : (OPENAI_KEY && OPENAI_KEY !== 'your_openai_api_key_here')
 
   useEffect(() => {
     if (user) {
@@ -310,28 +292,18 @@ export default function CVAnalyzer() {
     setIsDemoMode(false)
 
     try {
-      let analysisResult
-      if (!hasKey) {
-        // Demo mode
-        await new Promise(r => setTimeout(r, 2000))
-        analysisResult = getMockCVAnalysis(jobTitle || 'Software Engineer')
-        setIsDemoMode(true)
-        toast('Running in demo mode — add an API key for real AI analysis', { icon: '⚠️' })
-      } else if (provider === 'claude') {
-        analysisResult = await analyzeCV_Claude(cvText, jobTitle, jobDesc)
-      } else {
-        analysisResult = await analyzeCV_OpenAI(cvText, jobTitle, jobDesc)
-      }
+      const analysisResult = provider === 'claude'
+        ? await analyzeCV_Claude(cvText, jobTitle, jobDesc)
+        : await analyzeCV_OpenAI(cvText, jobTitle, jobDesc)
 
       setResult(analysisResult)
 
-      // Save to Supabase
       await saveAnalysis({
         job_title: jobTitle,
         job_description: jobDesc.slice(0, 500),
         cv_text: cvText.slice(0, 500),
         analysis_result: analysisResult,
-        ai_provider: isDemoMode ? 'demo' : provider,
+        ai_provider: provider,
       })
       loadHistory()
       toast.success('Analysis complete & saved!')
@@ -341,9 +313,8 @@ export default function CVAnalyzer() {
       const isQuotaError = msg.includes('credit') || msg.includes('quota') || msg.includes('billing') || msg.includes('balance')
       const isAuthError  = msg.includes('401') || msg.includes('403')
 
-      if (isQuotaError) {
-        // Otomatik demo moduna geç
-        toast('API krediniz bitti — Demo moda geçildi 🔄', { icon: '⚠️', duration: 4000 })
+      if (isQuotaError || isAuthError) {
+        toast('API sorunu — Demo moda geçildi 🔄', { icon: '⚠️', duration: 4000 })
         const demoResult = getMockCVAnalysis(jobTitle || 'Software Engineer')
         setResult(demoResult)
         setIsDemoMode(true)
@@ -355,8 +326,6 @@ export default function CVAnalyzer() {
           ai_provider: 'demo',
         })
         loadHistory()
-      } else if (isAuthError) {
-        toast.error('API key geçersiz. .env dosyasını kontrol edin.', { duration: 6000 })
       } else if (msg.includes('429')) {
         toast.error('Rate limit — biraz bekleyip tekrar deneyin.', { duration: 6000 })
       } else if (msg.includes('JSON')) {
@@ -372,7 +341,6 @@ export default function CVAnalyzer() {
   return (
     <div className="page">
       <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px' }}>
-        {/* Header */}
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
             <span style={{ fontSize: '2rem' }}>🎯</span>
@@ -383,17 +351,15 @@ export default function CVAnalyzer() {
           </p>
         </div>
 
-        {!hasKey && (
+        {isDemoMode && (
           <div className="demo-banner">
             <span>⚠️</span>
-            <span>API anahtarı bulunamadı — analiz <strong>demo modunda</strong> (örnek verilerle) çalışacaktır.</span>
+            <span>API sorunu nedeniyle bu sonuç <strong>demo veriyle</strong> (örnek) üretildi.</span>
           </div>
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: result ? '1fr 1fr' : '1fr', gap: '28px', alignItems: 'start' }}>
-          {/* Input Form */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* AI Toggle */}
             <div className="card" style={{ padding: '20px' }}>
               <p className="section-title" style={{ marginBottom: '12px' }}>Yapay Zeka Modeli</p>
               <div className="ai-toggle">
@@ -412,7 +378,6 @@ export default function CVAnalyzer() {
               </div>
             </div>
 
-            {/* Job Info */}
             <div className="card">
               <p className="section-title" style={{ marginBottom: '16px' }}>İş Detayları</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -438,7 +403,6 @@ export default function CVAnalyzer() {
               </div>
             </div>
 
-            {/* CV Input */}
             <div className="card">
               <p className="section-title" style={{ marginBottom: '12px' }}>CV / Özgeçmiş *</p>
               <CVUploadZone
@@ -478,7 +442,6 @@ export default function CVAnalyzer() {
             </button>
           </div>
 
-          {/* Results */}
           {loading && !result && (
             <div className="loading-state card" style={{ padding: '60px 40px' }}>
               <div className="spinner" />
@@ -490,7 +453,6 @@ export default function CVAnalyzer() {
           {result && <ResultDashboard result={result} provider={isDemoMode ? 'demo' : provider} />}
         </div>
 
-        {/* History */}
         {history.length > 0 && (
           <div style={{ marginTop: '48px' }}>
             <hr className="divider" />
