@@ -78,7 +78,18 @@ async function callGemini(system: string, message: string) {
   )
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(`Gemini error: ${res.status} — ${err?.error?.message || JSON.stringify(err)}`)
+    
+    // Fetch available models to debug
+    let modelsList = "Could not fetch models"
+    try {
+      const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`)
+      if (modelsRes.ok) {
+        const modelsData = await modelsRes.json()
+        modelsList = modelsData.models.map((m: any) => m.name).join(", ")
+      }
+    } catch(e) {}
+    
+    throw new Error(`Gemini error: ${res.status} — ${err?.error?.message || JSON.stringify(err)} | Available models: ${modelsList}`)
   }
   const data = await res.json()
   return stripFences(data.candidates[0].content.parts[0].text)
