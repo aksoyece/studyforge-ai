@@ -11,7 +11,8 @@ const corsHeaders = {
 }
 
 function stripFences(raw: string) {
-  return raw.replace(/```json\n?|\n?```/g, "").trim()
+  // Removes markdown code blocks like ```json, ```html, or just ``` 
+  return raw.replace(/```[a-zA-Z]*\n?|\n?```/g, "").trim()
 }
 
 async function callClaude(system: string, message: string) {
