@@ -3,7 +3,7 @@ const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY")
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY")
 const CLAUDE_MODEL = "claude-3-5-sonnet-20241022"
 const OPENAI_MODEL = "gpt-4o-mini"
-const GEMINI_MODEL = "gemini-2.5-flash"
+const GEMINI_MODEL = "gemini-3.6-flash"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
