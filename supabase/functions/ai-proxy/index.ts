@@ -3,7 +3,7 @@ const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY")
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY")
 const CLAUDE_MODEL = "claude-3-5-sonnet-20241022"
 const OPENAI_MODEL = "gpt-4o-mini"
-const GEMINI_MODEL = "gemini-flash-latest"
+const GEMINI_MODEL = "gemini-2.0-flash"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -71,25 +71,14 @@ async function callGemini(system: string, message: string) {
         contents: [{ parts: [{ text: message }] }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 8192,
         },
       }),
     }
   )
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    
-    // Fetch available models to debug
-    let modelsList = "Could not fetch models"
-    try {
-      const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`)
-      if (modelsRes.ok) {
-        const modelsData = await modelsRes.json()
-        modelsList = modelsData.models.map((m: any) => m.name).join(", ")
-      }
-    } catch(e) {}
-    
-    throw new Error(`Gemini error: ${res.status} — ${err?.error?.message || JSON.stringify(err)} | Available models: ${modelsList}`)
+    throw new Error(`Gemini error: ${res.status} — ${err?.error?.message || JSON.stringify(err)}`)
   }
   const data = await res.json()
   return stripFences(data.candidates[0].content.parts[0].text)
