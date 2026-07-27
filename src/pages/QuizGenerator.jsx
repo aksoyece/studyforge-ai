@@ -318,11 +318,8 @@ export default function QuizGenerator() {
     }
   }
 
-  const CLAUDE_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
-  const OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY
-  const hasKey = provider === 'claude'
-    ? (CLAUDE_KEY && CLAUDE_KEY !== 'your_claude_api_key_here')
-    : (OPENAI_KEY && OPENAI_KEY !== 'your_openai_api_key_here')
+  // Keys are now securely managed in the Supabase Edge Function
+  const hasKey = true
 
   useEffect(() => {
     if (user) {

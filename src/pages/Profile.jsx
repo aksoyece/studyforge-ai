@@ -114,21 +114,11 @@ export default function Profile() {
 
       if (allWrongQs.length > 0) {
         setAnalyzingWeaknesses(true)
-        const CLAUDE_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
-        const OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY
-        const hasClaude = CLAUDE_KEY && CLAUDE_KEY !== 'your_claude_api_key_here'
-        const hasOpenAI = OPENAI_KEY && OPENAI_KEY !== 'your_openai_api_key_here'
-
         try {
           let analysis = []
-          if (hasClaude) {
-            analysis = await analyzeWeaknesses_Claude(allWrongQs.slice(0, 15))
-          } else if (hasOpenAI) {
-            analysis = await analyzeWeaknesses_OpenAI(allWrongQs.slice(0, 15))
-          } else {
-            // Fallback mock
-            analysis = getMockWeaknessAnalysis()
-          }
+          // Defaulting to Claude for Weakness Analysis as an example, 
+          // or we can allow the user to choose. We will use Claude by default.
+          analysis = await analyzeWeaknesses_Claude(allWrongQs.slice(0, 15))
           setWeaknesses(analysis)
         } catch (err) {
           console.error('Weakness analysis error:', err)
