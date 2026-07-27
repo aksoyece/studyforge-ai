@@ -1,7 +1,9 @@
 const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY")
 const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY")
+const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY")
 const CLAUDE_MODEL = "claude-3-5-sonnet-20241022"
 const OPENAI_MODEL = "gpt-4o-mini"
+const GEMINI_MODEL = "gemini-1.5-flash"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,6 +57,30 @@ async function callOpenAI(system: string, message: string) {
   if (!res.ok) throw new Error(`OpenAI error: ${res.status}`)
   const data = await res.json()
   return stripFences(data.choices[0].message.content)
+}
+
+async function callGemini(system: string, message: string) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: system }] },
+        contents: [{ parts: [{ text: message }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+        },
+      }),
+    }
+  )
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(`Gemini error: ${res.status} — ${err?.error?.message || JSON.stringify(err)}`)
+  }
+  const data = await res.json()
+  return stripFences(data.candidates[0].content.parts[0].text)
 }
 
 // --- Ortak prompt builder'lar (iki dosyadaki aynı promptlar, TEK yerde) ---
@@ -140,11 +166,18 @@ Rules:
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   try {
-    const { action, provider = "claude", payload } = await req.json()
+    const { action, provider = "gemini", payload } = await req.json()
     const builder = prompts[action]
     if (!builder) throw new Error(`Unknown action: ${action}`)
     const { system, message } = builder(payload)
-    const raw = provider === "openai" ? await callOpenAI(system, message) : await callClaude(system, message)
+    let raw: string
+    if (provider === "openai") {
+      raw = await callOpenAI(system, message)
+    } else if (provider === "claude") {
+      raw = await callClaude(system, message)
+    } else {
+      raw = await callGemini(system, message)
+    }
     return new Response(JSON.stringify({ result: raw }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })

@@ -233,7 +233,7 @@ export default function QuizGenerator() {
   const [pdfText, setPdfText] = useState('')
   const [questionCount, setQuestionCount] = useState(5)
   const [difficulty, setDifficulty] = useState('medium')
-  const [provider, setProvider] = useState('claude')
+  const [provider, setProvider] = useState('gemini')
 
   // Generative Outputs
   const [questions, setQuestions] = useState([])
@@ -617,6 +617,8 @@ ${bodyText}`
             <div className="card" style={{ padding: '20px' }}>
               <p className="section-title" style={{ marginBottom: '12px' }}>AI Altyapısı</p>
               <div className="ai-toggle">
+                <button className={`ai-toggle-btn ${provider === 'gemini' ? 'active' : ''}`}
+                  onClick={() => setProvider('gemini')}>✨ Gemini (Ücretsiz)</button>
                 <button className={`ai-toggle-btn ${provider === 'claude' ? 'active' : ''}`}
                   onClick={() => setProvider('claude')}>🤖 Claude</button>
                 <button className={`ai-toggle-btn ${provider === 'openai' ? 'active-openai active' : ''}`}

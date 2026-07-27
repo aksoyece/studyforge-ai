@@ -263,7 +263,7 @@ export default function CVAnalyzer() {
   const [cvText, setCvText] = useState('')
   const [jobTitle, setJobTitle] = useState('')
   const [jobDesc, setJobDesc] = useState('')
-  const [provider, setProvider] = useState('claude')
+  const [provider, setProvider] = useState('gemini')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState([])
@@ -363,6 +363,12 @@ export default function CVAnalyzer() {
             <div className="card" style={{ padding: '20px' }}>
               <p className="section-title" style={{ marginBottom: '12px' }}>Yapay Zeka Modeli</p>
               <div className="ai-toggle">
+                <button
+                  className={`ai-toggle-btn ${provider === 'gemini' ? 'active' : ''}`}
+                  onClick={() => setProvider('gemini')}
+                >
+                  ✨ Gemini
+                </button>
                 <button
                   className={`ai-toggle-btn ${provider === 'claude' ? 'active' : ''}`}
                   onClick={() => setProvider('claude')}
