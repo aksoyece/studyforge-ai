@@ -486,7 +486,7 @@ ${bodyText}`
     } catch (err) {
       console.error('Study generation error:', err)
       toast.dismiss('extract')
-      toast('API hatası oluştu — Lütfen tekrar deneyin 🔄', { icon: '⚠️', duration: 4000 })
+      toast.error(`HATA: ${err?.message || JSON.stringify(err)}`, { duration: 10000 })
       
       await new Promise(r => setTimeout(r, 1000))
       const mockQs = getMockQuiz(questionCount)
