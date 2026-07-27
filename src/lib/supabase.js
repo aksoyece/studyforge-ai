@@ -76,7 +76,7 @@ export async function getQuizResults() {
   const { data, error } = await supabase
     .from('quiz_results')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('completed_at', { ascending: false })
   if (error) console.error('Supabase error:', error)
   return data || []
 }

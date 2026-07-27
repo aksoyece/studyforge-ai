@@ -18,11 +18,6 @@ export default function RecoveryWorkspace() {
   const [selected, setSelected] = useState(null)
   const [answered, setAnswered] = useState(false)
 
-  const CLAUDE_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
-  const OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY
-  const hasClaude = CLAUDE_KEY && CLAUDE_KEY !== 'your_claude_api_key_here'
-  const hasOpenAI = OPENAI_KEY && OPENAI_KEY !== 'your_openai_api_key_here'
-
   useEffect(() => {
     if (weakTopics.length === 0) {
       toast.error('Zayıf konu bilgisi bulunamadı.')
@@ -35,21 +30,18 @@ export default function RecoveryWorkspace() {
   async function loadRecoveryQuiz() {
     setLoading(true)
     try {
-      let qs = []
-      if (hasClaude) {
-        qs = await generateRecoveryQuiz_Claude(weakTopics)
-      } else if (hasOpenAI) {
-        qs = await generateRecoveryQuiz_OpenAI(weakTopics)
-      } else {
-        // Fallback mock
-        await new Promise(r => setTimeout(r, 1500))
-        qs = getMockRecoveryQuiz()
-      }
+      const qs = await generateRecoveryQuiz_Claude(weakTopics)
       setQuestions(qs)
     } catch (err) {
       console.error(err)
-      toast.error('Kurtarma quizi üretilirken hata oluştu. Örnek test başlatılıyor.')
-      setQuestions(getMockRecoveryQuiz())
+      try {
+        const qs = await generateRecoveryQuiz_OpenAI(weakTopics)
+        setQuestions(qs)
+      } catch (err2) {
+        console.error(err2)
+        toast.error('Kurtarma quizi üretilirken hata oluştu. Örnek test başlatılıyor.')
+        setQuestions(getMockRecoveryQuiz())
+      }
     } finally {
       setLoading(false)
     }
@@ -91,13 +83,10 @@ export default function RecoveryWorkspace() {
 
   return (
     <div className="page" style={{ position: 'relative', overflow: 'hidden' }}>
-      
-      {/* Red/Indigo Glow */}
       <div className="glow-blob glow-blob-primary" style={{ background: 'radial-gradient(circle, var(--accent-rose) 0%, transparent 70%)' }} />
-      
+
       <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px', maxWidth: '680px', position: 'relative', zIndex: 1 }}>
-        
-        {/* Header */}
+
         <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -112,7 +101,6 @@ export default function RecoveryWorkspace() {
         <div className="card" style={{ padding: '32px' }}>
           {!quizFinished ? (
             <div>
-              {/* Question progress */}
               <div style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
                   <span>Soru {currentQ + 1} / {questions.length}</span>
@@ -123,14 +111,12 @@ export default function RecoveryWorkspace() {
                 </div>
               </div>
 
-              {/* Question card */}
               <div className="card" style={{ marginBottom: '20px', background: 'linear-gradient(135deg, rgba(244,63,94,0.06), rgba(99,102,241,0.04))', border: '1px solid rgba(244,63,94,0.15)' }}>
                 <h3 style={{ fontSize: '1.05rem', lineHeight: 1.6, fontWeight: 600 }}>
                   {questions[currentQ].question}
                 </h3>
               </div>
 
-              {/* Options */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
                 {questions[currentQ].options.map((opt, i) => {
                   let cls = 'quiz-option'
@@ -139,10 +125,10 @@ export default function RecoveryWorkspace() {
                     else if (i === selected) cls += ' wrong'
                   }
                   return (
-                    <button 
-                      key={i} 
-                      className={cls} 
-                      disabled={answered} 
+                    <button
+                      key={i}
+                      className={cls}
+                      disabled={answered}
                       onClick={() => handleSelect(i)}
                       style={{
                         borderColor: answered && i === questions[currentQ].correctIndex ? 'var(--accent-mint)' : answered && i === selected ? 'var(--accent-rose)' : 'var(--border)'
@@ -155,7 +141,6 @@ export default function RecoveryWorkspace() {
                 })}
               </div>
 
-              {/* Explanation */}
               {answered && (
                 <div className="animate-fade">
                   <div style={{
