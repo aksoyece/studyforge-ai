@@ -292,9 +292,7 @@ export default function CVAnalyzer() {
     setIsDemoMode(false)
 
     try {
-      const analysisResult = provider === 'claude'
-        ? await analyzeCV_Claude(cvText, jobTitle, jobDesc)
-        : await analyzeCV_OpenAI(cvText, jobTitle, jobDesc)
+      const analysisResult = await analyzeCV_Claude(cvText, jobTitle, jobDesc)
 
       setResult(analysisResult)
 

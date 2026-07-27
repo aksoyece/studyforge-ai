@@ -300,11 +300,7 @@ export default function QuizGenerator() {
         await new Promise(r => setTimeout(r, 1200))
         aiResponse = getMockChatResponse(userMsg)
       } else {
-        if (provider === 'claude') {
-          aiResponse = await askDocument_Claude(pdfText, userMsg, chatMessages)
-        } else {
-          aiResponse = await askDocument_OpenAI(pdfText, userMsg, chatMessages)
-        }
+        aiResponse = await askDocument_Claude(pdfText, userMsg, chatMessages)
       }
       setChatMessages([...updatedMessages, { sender: 'ai', text: aiResponse }])
     } catch (err) {
@@ -459,7 +455,6 @@ ${bodyText}`
         
         toast.loading('Çalışma alanınız AI ile oluşturuluyor...', { id: 'extract' })
 
-        if (provider === 'claude') {
           const [qs, summ, cards] = await Promise.all([
             generateQuiz_Claude(text, questionCount, difficulty),
             generateSummary_Claude(text),
@@ -468,16 +463,6 @@ ${bodyText}`
           extractedQs = qs
           extractedSummary = summ
           extractedFlashcards = cards
-        } else {
-          const [qs, summ, cards] = await Promise.all([
-            generateQuiz_OpenAI(text, questionCount, difficulty),
-            generateSummary_OpenAI(text),
-            generateFlashcards_OpenAI(text)
-          ])
-          extractedQs = qs
-          extractedSummary = summ
-          extractedFlashcards = cards
-        }
         toast.dismiss('extract')
       }
 
