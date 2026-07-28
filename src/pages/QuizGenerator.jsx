@@ -248,6 +248,15 @@ export default function QuizGenerator() {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [loadingText, setLoadingText] = useState('PDF verileri çıkarılıyor...')
+  const [retryMessage, setRetryMessage] = useState('')
+
+  useEffect(() => {
+    const handleRetry = (e) => {
+      setRetryMessage(`Sunucu yoğun. Deneme ${e.detail.attempt} (${e.detail.waitTime/1000}sn bekleniyor)...`)
+    }
+    window.addEventListener('ai-retry', handleRetry)
+    return () => window.removeEventListener('ai-retry', handleRetry)
+  }, [])
   const [loadingProgress, setLoadingProgress] = useState(0)
 
   const messagesEndRef = useRef(null)
@@ -453,6 +462,8 @@ ${bodyText}`
         setSourceName(finalSourceName)
         setPdfText(text)
         
+        setLoadingText('Çalışma materyalleri AI ile üretiliyor...')
+        setRetryMessage('')
         toast.loading('Çalışma alanınız AI ile oluşturuluyor...', { id: 'extract' })
 
           const [qs, summ, cards] = await Promise.all([
@@ -701,11 +712,18 @@ ${bodyText}`
         {/* Extracting Phase */}
         {phase === 'extracting' && (
           <div className="card loading-state animate-fade-up" style={{ maxWidth: '500px', margin: '40px auto', padding: '40px', textAlign: 'center' }}>
-            <div className="spinner" style={{ borderTopColor: 'var(--accent-cyan)', width: '60px', height: '60px', borderWidth: '4px', margin: '0 auto 24px' }} />
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '12px' }}>{loadingText}</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '32px' }}>Lütfen bekleyin, yapay zeka analiz yapıyor...</p>
+            <div className="spinner" style={{ marginBottom: '20px' }}></div>
+            <h2>{loadingText}</h2>
+            {retryMessage && (
+              <p style={{ color: '#ffb84d', marginTop: '10px', fontSize: '14px', fontWeight: '500' }}>
+                ⚠️ {retryMessage}
+              </p>
+            )}
+            <p style={{ opacity: 0.7, marginTop: '10px' }}>
+              Bu işlem dokümanın uzunluğuna göre 10-30 saniye sürebilir...
+            </p>
             
-            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginTop: '20px' }}>
               <div style={{ width: `${loadingProgress}%`, height: '100%', background: 'var(--gradient-cyan)', transition: 'width 0.4s ease-out' }} />
             </div>
             <div style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--accent-cyan)', marginTop: '8px', fontWeight: 700 }}>

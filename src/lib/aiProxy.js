@@ -20,6 +20,12 @@ export async function invokeAI(provider, action, payload, maxRetries = 3) {
         attempt++
         const waitTime = Math.pow(2, attempt) * 1000 // 2s, 4s bekler
         console.warn(`⏳ Sunucu yoğun (429). Deneme ${attempt}: ${waitTime}ms bekleniyor...`)
+        
+        // UI'a bilgi ver (spinner altında göstermek için)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('ai-retry', { detail: { attempt, waitTime } }))
+        }
+
         await new Promise(r => setTimeout(r, waitTime))
         continue
       }
