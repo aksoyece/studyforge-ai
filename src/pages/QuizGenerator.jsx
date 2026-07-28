@@ -664,7 +664,7 @@ ${bodyText}`
           background: 'rgba(0,0,0,0.8)', zIndex: 9999,
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
-          <div className="card animate-fade-up" style={{ width: '400px', maxWidth: '90%' }}>
+          <div className="card animate-fade-up" style={{ width: '400px', maxWidth: '90%', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
             <h3>Hangi Gruba Paylaşılacak?</h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
               Bu çalışma alanını arkadaşlarınızla paylaşın. Onlar da özetleri okuyup quiz'i kendi profilleri üzerinden çözebilecekler.
