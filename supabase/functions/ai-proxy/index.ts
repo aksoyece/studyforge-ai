@@ -15,6 +15,21 @@ function stripFences(raw: string) {
   return raw.replace(/```[a-zA-Z]*\n?|\n?```/g, "").trim()
 }
 
+// Büyük dokümanları (PDF) tek parça başından almak yerine, baş/orta/son şeklinde özetleyerek alır
+function sampleDocument(text: string, maxChars = 15000) {
+  if (!text || text.length <= maxChars) return text || ""
+  
+  const chunkLength = Math.floor(maxChars / 3)
+  const startChunk = text.slice(0, chunkLength)
+  
+  const middleIndex = Math.floor(text.length / 2) - Math.floor(chunkLength / 2)
+  const middleChunk = text.slice(middleIndex, middleIndex + chunkLength)
+  
+  const endChunk = text.slice(-chunkLength)
+  
+  return `${startChunk}\n\n...[METNİN ORTA KISMINDAN ATLANDI]...\n\n${middleChunk}\n\n...[METNİN SONUNA ATLANDI]...\n\n${endChunk}`
+}
+
 async function callClaude(system: string, message: string) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -110,7 +125,7 @@ Return ONLY the JSON, no markdown, no explanation.`,
 ]
 Difficulty: ${difficulty}. Make questions ${difficulty === "easy" ? "straightforward and factual" : difficulty === "medium" ? "requiring understanding of concepts" : "analytical and requiring deep comprehension"}.
 Return ONLY the JSON array, no markdown.`,
-    message: `Create exactly ${questionCount} questions from this text:\n\n${pdfText.slice(0, 6000)}`,
+    message: `Create exactly ${questionCount} questions from this text:\n\n${sampleDocument(pdfText, 12000)}`,
     isJson: true,
   }),
 
@@ -122,7 +137,7 @@ Include:
 - '## Önemli Başlıklar (Key Concepts)' (Bullet points with bold terms and definitions)
 - '## Özet Çıkarımlar (Key Takeaways)' (3 bullet points of final conclusions)
 Do not include any extra introductory or concluding conversational text. Write in Turkish if possible.`,
-    message: `Summarize this text:\n\n${pdfText.slice(0, 8000)}`,
+    message: `Summarize this text:\n\n${sampleDocument(pdfText, 15000)}`,
   }),
 
   generateFlashcards: ({ pdfText, cardCount = 8 }) => ({
@@ -130,7 +145,7 @@ Do not include any extra introductory or concluding conversational text. Write i
 Return a JSON array with this exact structure:
 [ { "front": "<Key term, question, or concept>", "back": "<Definition, answer, or detailed explanation>" } ]
 Write in Turkish. Return ONLY the raw JSON array, no markdown wrap, no conversational text.`,
-    message: `Create ${cardCount} flashcards from this text:\n\n${pdfText.slice(0, 8000)}`,
+    message: `Create ${cardCount} flashcards from this text:\n\n${sampleDocument(pdfText, 15000)}`,
     isJson: true,
   }),
 
@@ -159,7 +174,7 @@ Write in Turkish. Return ONLY the JSON array, no markdown.`,
     return {
       system: `You are an expert AI Study Assistant. Answer the student's question based strictly on the provided document text.
 Document Text:
-${pdfText.slice(0, 8000)}
+${sampleDocument(pdfText, 15000)}
 
 Rules:
 - Be concise, educational, and helpful.
