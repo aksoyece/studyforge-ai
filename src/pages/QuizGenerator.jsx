@@ -661,10 +661,17 @@ ${bodyText}`
       {showShareModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.8)', zIndex: 9999,
+          background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999,
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
-          <div className="card animate-fade-up" style={{ width: '400px', maxWidth: '90%', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+          <div className="card animate-fade-up" style={{ 
+            width: '400px', 
+            maxWidth: '90%', 
+            background: 'rgba(13, 17, 32, 0.85)', 
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
+          }}>
             <h3>Hangi Gruba Paylaşılacak?</h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
               Bu çalışma alanını arkadaşlarınızla paylaşın. Onlar da özetleri okuyup quiz'i kendi profilleri üzerinden çözebilecekler.
