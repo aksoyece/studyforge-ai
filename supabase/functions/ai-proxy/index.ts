@@ -103,7 +103,7 @@ async function callGemini(system: string, message: string, isJson: boolean = fal
 // --- Ortak prompt builder'lar (iki dosyadaki aynı promptlar, TEK yerde) ---
 const prompts: Record<string, (p: any) => { system: string; message: string; isJson?: boolean }> = {
   analyzeCV: ({ cvText, jobTitle, jobDescription }) => ({
-    system: `You are an expert career coach and ATS specialist. Analyze the CV against the job description and return a JSON object with this exact structure:
+    system: `You must respond entirely in Turkish (Türkçe), regardless of the input document's language. You are an expert career coach and ATS specialist. Analyze the CV against the job description and return a JSON object with this exact structure:
 {
   "matchScore": <number 0-100>,
   "summary": "<2-3 sentence overall assessment>",
@@ -113,56 +113,56 @@ const prompts: Record<string, (p: any) => { system: string; message: string; isJ
   "suggestions": ["<actionable suggestion 1>", "<actionable suggestion 2>", "<actionable suggestion 3>"],
   "coverLetterOpening": "<A compelling 2-3 sentence cover letter opening paragraph>"
 }
-Return ONLY the JSON, no markdown, no explanation.`,
+Return ONLY the JSON, no markdown, no explanation. Do not include any English words or sentences in your response.`,
     message: `Job Title: ${jobTitle}\n\nJob Description:\n${jobDescription}\n\nCV/Resume:\n${cvText}`,
     isJson: true,
   }),
 
   generateQuiz: ({ pdfText, questionCount, difficulty }) => ({
-    system: `You are an expert educator. Create a multiple-choice quiz from the provided text. Return a JSON array with this exact structure:
+    system: `You must respond entirely in Turkish (Türkçe), regardless of the input document's language. You are an expert educator. Create a multiple-choice quiz from the provided text. Return a JSON array with this exact structure:
 [
   { "id": 1, "question": "<question text>", "options": ["A) <option>", "B) <option>", "C) <option>", "D) <option>"], "correctIndex": <0-3>, "explanation": "<why this is correct>" }
 ]
 Difficulty: ${difficulty}. Make questions ${difficulty === "easy" ? "straightforward and factual" : difficulty === "medium" ? "requiring understanding of concepts" : "analytical and requiring deep comprehension"}.
-Return ONLY the JSON array, no markdown.`,
+Return ONLY the JSON array, no markdown. Do not include any English words or sentences in your response.`,
     message: `Create exactly ${questionCount} questions from this text:\n\n${sampleDocument(pdfText, 12000)}`,
     isJson: true,
   }),
 
   generateSummary: ({ pdfText }) => ({
-    system: `You are an expert academic assistant. Generate a beautifully structured Markdown summary of the provided text.
+    system: `You must respond entirely in Turkish (Türkçe), regardless of the input document's language. You are an expert academic assistant. Generate a beautifully structured Markdown summary of the provided text.
 Include:
 - '# [Topic Title]'
 - '## Genel Bakış (Overview)' (A paragraph)
 - '## Önemli Başlıklar (Key Concepts)' (Bullet points with bold terms and definitions)
 - '## Özet Çıkarımlar (Key Takeaways)' (3 bullet points of final conclusions)
-Do not include any extra introductory or concluding conversational text. Write in Turkish if possible.`,
+Do not include any extra introductory or concluding conversational text. Do not include any English words or sentences in your response.`,
     message: `Summarize this text:\n\n${sampleDocument(pdfText, 15000)}`,
   }),
 
   generateFlashcards: ({ pdfText, cardCount = 8 }) => ({
-    system: `You are an expert educator. Create exactly ${cardCount} study flashcards from the provided text.
+    system: `You must respond entirely in Turkish (Türkçe), regardless of the input document's language. You are an expert educator. Create exactly ${cardCount} study flashcards from the provided text.
 Return a JSON array with this exact structure:
 [ { "front": "<Key term, question, or concept>", "back": "<Definition, answer, or detailed explanation>" } ]
-Write in Turkish. Return ONLY the raw JSON array, no markdown wrap, no conversational text.`,
+Return ONLY the raw JSON array, no markdown wrap, no conversational text. Do not include any English words or sentences in your response.`,
     message: `Create ${cardCount} flashcards from this text:\n\n${sampleDocument(pdfText, 15000)}`,
     isJson: true,
   }),
 
   analyzeWeaknesses: ({ wrongQuestions }) => ({
-    system: `You are an AI Study Coach. Analyze the list of questions the student got wrong and output a JSON array of the top 3-4 weak topics.
+    system: `You must respond entirely in Turkish (Türkçe), regardless of the input document's language. You are an AI Study Coach. Analyze the list of questions the student got wrong and output a JSON array of the top 3-4 weak topics.
 Structure:
 [ { "topic": "<Konu Başlığı>", "percentage": <Hata oranı tahmini>, "recommendation": "<1 cümlelik tavsiye>" } ]
-Write in Turkish. Return ONLY raw JSON array, no markdown.`,
+Return ONLY raw JSON array, no markdown. Do not include any English words or sentences in your response.`,
     message: `Here are the questions the user failed:\n\n${JSON.stringify(wrongQuestions)}`,
     isJson: true,
   }),
 
   generateRecoveryQuiz: ({ weakTopics }) => ({
-    system: `You are an expert educator. Create a custom 5-question recovery multiple-choice quiz targeting these weak topics: ${JSON.stringify(weakTopics)}.
+    system: `You must respond entirely in Turkish (Türkçe), regardless of the input document's language. You are an expert educator. Create a custom 5-question recovery multiple-choice quiz targeting these weak topics: ${JSON.stringify(weakTopics)}.
 Return a JSON array with this exact structure:
 [ { "id": 1, "question": "<question text>", "options": ["A) <option>", "B) <option>", "C) <option>", "D) <option>"], "correctIndex": <0-3>, "explanation": "<why this is correct, focusing on teaching the concept>" } ]
-Write in Turkish. Return ONLY the JSON array, no markdown.`,
+Return ONLY the JSON array, no markdown. Do not include any English words or sentences in your response.`,
     message: `Generate 5 high-quality recovery questions.`,
     isJson: true,
   }),
@@ -172,14 +172,14 @@ Write in Turkish. Return ONLY the JSON array, no markdown.`,
       .map((msg: any) => `${msg.sender === "user" ? "Student" : "AI Assistant"}: ${msg.text}`)
       .join("\n")
     return {
-      system: `You are an expert AI Study Assistant. Answer the student's question based strictly on the provided document text.
+      system: `You must respond entirely in Turkish (Türkçe), regardless of the input document's language. You are an expert AI Study Assistant. Answer the student's question based strictly on the provided document text.
 Document Text:
 ${sampleDocument(pdfText, 15000)}
 
 Rules:
 - Be concise, educational, and helpful.
 - If the answer cannot be found in the document, use your general knowledge but mention that it is not explicitly stated in the document.
-- Write in Turkish.`,
+- Do not include any English words or sentences in your response.`,
       message: `Chat History:\n${formattedHistory}\n\nStudent Question: ${userQuestion}`,
     }
   },
