@@ -60,8 +60,7 @@ async function callOpenAI(system: string, message: string) {
   return stripFences(data.choices[0].message.content)
 }
 
-async function callGemini(system: string, message: string) {
-  const isJson = system.includes("JSON")
+async function callGemini(system: string, message: string, isJson: boolean = false) {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,
     {
@@ -87,7 +86,7 @@ async function callGemini(system: string, message: string) {
 }
 
 // --- Ortak prompt builder'lar (iki dosyadaki aynı promptlar, TEK yerde) ---
-const prompts: Record<string, (p: any) => { system: string; message: string }> = {
+const prompts: Record<string, (p: any) => { system: string; message: string; isJson?: boolean }> = {
   analyzeCV: ({ cvText, jobTitle, jobDescription }) => ({
     system: `You are an expert career coach and ATS specialist. Analyze the CV against the job description and return a JSON object with this exact structure:
 {
@@ -101,6 +100,7 @@ const prompts: Record<string, (p: any) => { system: string; message: string }> =
 }
 Return ONLY the JSON, no markdown, no explanation.`,
     message: `Job Title: ${jobTitle}\n\nJob Description:\n${jobDescription}\n\nCV/Resume:\n${cvText}`,
+    isJson: true,
   }),
 
   generateQuiz: ({ pdfText, questionCount, difficulty }) => ({
@@ -111,6 +111,7 @@ Return ONLY the JSON, no markdown, no explanation.`,
 Difficulty: ${difficulty}. Make questions ${difficulty === "easy" ? "straightforward and factual" : difficulty === "medium" ? "requiring understanding of concepts" : "analytical and requiring deep comprehension"}.
 Return ONLY the JSON array, no markdown.`,
     message: `Create exactly ${questionCount} questions from this text:\n\n${pdfText.slice(0, 6000)}`,
+    isJson: true,
   }),
 
   generateSummary: ({ pdfText }) => ({
@@ -130,6 +131,7 @@ Return a JSON array with this exact structure:
 [ { "front": "<Key term, question, or concept>", "back": "<Definition, answer, or detailed explanation>" } ]
 Write in Turkish. Return ONLY the raw JSON array, no markdown wrap, no conversational text.`,
     message: `Create ${cardCount} flashcards from this text:\n\n${pdfText.slice(0, 8000)}`,
+    isJson: true,
   }),
 
   analyzeWeaknesses: ({ wrongQuestions }) => ({
@@ -138,6 +140,7 @@ Structure:
 [ { "topic": "<Konu Başlığı>", "percentage": <Hata oranı tahmini>, "recommendation": "<1 cümlelik tavsiye>" } ]
 Write in Turkish. Return ONLY raw JSON array, no markdown.`,
     message: `Here are the questions the user failed:\n\n${JSON.stringify(wrongQuestions)}`,
+    isJson: true,
   }),
 
   generateRecoveryQuiz: ({ weakTopics }) => ({
@@ -146,6 +149,7 @@ Return a JSON array with this exact structure:
 [ { "id": 1, "question": "<question text>", "options": ["A) <option>", "B) <option>", "C) <option>", "D) <option>"], "correctIndex": <0-3>, "explanation": "<why this is correct, focusing on teaching the concept>" } ]
 Write in Turkish. Return ONLY the JSON array, no markdown.`,
     message: `Generate 5 high-quality recovery questions.`,
+    isJson: true,
   }),
 
   askDocument: ({ pdfText, userQuestion, chatHistory = [] }) => {
@@ -172,14 +176,14 @@ Deno.serve(async (req) => {
     const { action, provider = "gemini", payload } = await req.json()
     const builder = prompts[action]
     if (!builder) throw new Error(`Unknown action: ${action}`)
-    const { system, message } = builder(payload)
+    const { system, message, isJson } = builder(payload)
     let raw: string
     if (provider === "openai") {
       raw = await callOpenAI(system, message)
     } else if (provider === "claude") {
       raw = await callClaude(system, message)
     } else {
-      raw = await callGemini(system, message)
+      raw = await callGemini(system, message, isJson)
     }
     return new Response(JSON.stringify({ result: raw }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
