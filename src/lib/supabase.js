@@ -14,6 +14,7 @@ export async function saveAnalysis(data) {
     .from('cv_analyses')
     .insert([{ ...data, user_id: session.user.id }])
     .select()
+    .single()
   if (error) console.error('Supabase error:', error)
   return result
 }
@@ -40,6 +41,7 @@ export async function saveQuizSession(data) {
     .from('quiz_sessions')
     .insert([{ ...data, user_id: session.user.id }])
     .select()
+    .single()
   if (error) console.error('Supabase error:', error)
   return result
 }
@@ -65,6 +67,7 @@ export async function saveQuizResult(data) {
     .from('quiz_results')
     .insert([{ ...data, user_id: session.user.id }])
     .select()
+    .single()
   if (error) console.error('Supabase error:', error)
   return result
 }
