@@ -189,6 +189,18 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   try {
     const { action, provider = "gemini", payload } = await req.json()
+    
+    // Halüsinasyon Önlemi: Girdi metni çok kısaysa modeli boşuna yormadan reddet
+    const sourceText = payload.pdfText || payload.cvText
+    if (sourceText && sourceText.trim().length < 50) {
+      return new Response(JSON.stringify({ 
+        error: "Yüklenen belge çok kısa veya metin okunamıyor. Lütfen daha kapsamlı bir PDF/belge yükleyin." 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+    
     const builder = prompts[action]
     if (!builder) throw new Error(`Unknown action: ${action}`)
     const { system, message, isJson } = builder(payload)
