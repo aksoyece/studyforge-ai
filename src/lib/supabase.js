@@ -123,26 +123,19 @@ export async function joinGroup(inviteCode) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return { error: 'Not logged in' }
 
-  // Find group by invite code
-  const { data: group, error: fetchErr } = await supabase
-    .from('groups')
-    .select('id')
-    .eq('invite_code', inviteCode)
-    .single()
-
-  if (fetchErr || !group) return { error: 'Geçersiz veya süresi dolmuş davet kodu.' }
-
-  // Join
-  const { error } = await supabase
-    .from('group_members')
-    .insert([{ group_id: group.id, user_id: session.user.id }])
+  // Güvenlik (RLS) nedeniyle groups tablosunda arama yapamıyoruz. 
+  // Bunun yerine Security Definer olan RPC (Stored Procedure) çağırıyoruz.
+  const { data: groupId, error } = await supabase.rpc('join_group_by_code', { 
+    invite_code: inviteCode 
+  })
 
   if (error) {
-    if (error.code === '23505') return { error: 'Zaten bu grubun üyesisiniz.' }
+    if (error.message.includes('unique constraint')) return { error: 'Zaten bu grubun üyesisiniz.' }
+    if (error.message.includes('Geçersiz')) return { error: 'Geçersiz veya süresi dolmuş davet kodu.' }
     return { error: error.message }
   }
 
-  return { success: true, groupId: group.id }
+  return { success: true, groupId }
 }
 
 export async function shareContent(groupId, contentType, contentId, title) {
