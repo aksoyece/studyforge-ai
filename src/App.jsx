@@ -7,6 +7,8 @@ import Auth from './pages/Auth'
 import Profile from './pages/Profile'
 import RecoveryWorkspace from './pages/RecoveryWorkspace'
 import Calendar from './pages/Calendar'
+import Groups from './pages/Groups'
+import GroupDetails from './pages/GroupDetails'
 import FloatingAssistant from './components/FloatingAssistant'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import './index.css'
@@ -64,6 +66,7 @@ function Navbar() {
         <button className={`nav-link ${location.pathname === '/cv' ? 'active' : ''}`} onClick={() => handleNav('/cv')}>CV Analyzer</button>
         <button className={`nav-link ${location.pathname === '/quiz' ? 'active' : ''}`} onClick={() => handleNav('/quiz')}>Study Workspace</button>
         <button className={`nav-link ${location.pathname === '/calendar' ? 'active' : ''}`} onClick={() => handleNav('/calendar')}>Study Calendar</button>
+        <button className={`nav-link ${location.pathname.startsWith('/groups') ? 'active' : ''}`} onClick={() => handleNav('/groups')}>Gruplarım</button>
         
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px', justifyContent: 'center' }}>
@@ -120,6 +123,8 @@ export default function App() {
           <Route path="/quiz" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+          <Route path="/groups" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
+          <Route path="/groups/:id" element={<ProtectedRoute><GroupDetails /></ProtectedRoute>} />
           <Route path="/recovery" element={<ProtectedRoute><RecoveryWorkspace /></ProtectedRoute>} />
         </Routes>
         <FloatingAssistant />

@@ -80,3 +80,86 @@ export async function getQuizResults() {
   if (error) console.error('Supabase error:', error)
   return data || []
 }
+
+// --- GROUP FEATURES ---
+
+export async function createGroup(name) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { error: 'Not logged in' }
+
+  // Create group
+  const { data: group, error } = await supabase
+    .from('groups')
+    .insert([{ name, created_by: session.user.id }])
+    .select()
+    .single()
+    
+  if (error) return { error }
+
+  // Add creator as member
+  await supabase.from('group_members').insert([{ group_id: group.id, user_id: session.user.id }])
+  
+  return { group }
+}
+
+export async function getMyGroups() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return []
+
+  const { data, error } = await supabase
+    .from('groups')
+    .select('*, group_members!inner(user_id)')
+    .eq('group_members.user_id', session.user.id)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching groups:', error)
+    return []
+  }
+  return data
+}
+
+export async function joinGroup(inviteCode) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { error: 'Not logged in' }
+
+  // Find group by invite code
+  const { data: group, error: fetchErr } = await supabase
+    .from('groups')
+    .select('id')
+    .eq('invite_code', inviteCode)
+    .single()
+
+  if (fetchErr || !group) return { error: 'Geçersiz veya süresi dolmuş davet kodu.' }
+
+  // Join
+  const { error } = await supabase
+    .from('group_members')
+    .insert([{ group_id: group.id, user_id: session.user.id }])
+
+  if (error) {
+    if (error.code === '23505') return { error: 'Zaten bu grubun üyesisiniz.' }
+    return { error: error.message }
+  }
+
+  return { success: true, groupId: group.id }
+}
+
+export async function shareContent(groupId, contentType, contentId, title) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { error: 'Not logged in' }
+
+  const { data, error } = await supabase
+    .from('shared_content')
+    .insert([{ 
+      group_id: groupId, 
+      shared_by: session.user.id, 
+      content_type: contentType, 
+      content_id: contentId,
+      title
+    }])
+    .select()
+
+  return { data, error }
+}
+

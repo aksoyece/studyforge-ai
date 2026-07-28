@@ -7,6 +7,8 @@ import { saveQuizSession, getQuizSessions, saveQuizResult } from '../lib/supabas
 import { getMockQuiz, getMockSummary, getMockFlashcards, getMockChatResponse } from '../lib/mockAI'
 import { extractTextFromPDF } from '../lib/pdfExtract'
 import { useAuth } from '../context/AuthContext'
+import { useLocation } from 'react-router-dom'
+import { supabase, getMyGroups, shareContent } from '../lib/supabase'
 
 // Simple regex markdown parser to avoid external packages
 function renderMarkdown(md) {
@@ -235,6 +237,15 @@ export default function QuizGenerator() {
   const [difficulty, setDifficulty] = useState('medium')
   const provider = 'gemini'
 
+  // URL Params for Shared Content
+  const location = useLocation()
+  const sharedId = new URLSearchParams(location.search).get('shared')
+  
+  // Sharing States
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [userGroups, setUserGroups] = useState([])
+  const [currentSessionId, setCurrentSessionId] = useState(null)
+
   // Generative Outputs
   const [questions, setQuestions] = useState([])
   const [summary, setSummary] = useState('')
@@ -249,6 +260,41 @@ export default function QuizGenerator() {
   const [chatLoading, setChatLoading] = useState(false)
   const [loadingText, setLoadingText] = useState('PDF verileri çıkarılıyor...')
   const [retryMessage, setRetryMessage] = useState('')
+  const [loadingProgress, setLoadingProgress] = useState(0)
+
+  const messagesEndRef = useRef(null)
+
+  useEffect(() => {
+    // If a shared quiz is opened, load it immediately
+    if (sharedId) {
+      loadSharedContent(sharedId)
+    }
+  }, [sharedId])
+
+  async function loadSharedContent(id) {
+    const toastId = toast.loading('Paylaşılan içerik yükleniyor...')
+    const { data, error } = await supabase
+      .from('quiz_sessions')
+      .select('*')
+      .eq('id', id)
+      .single()
+      
+    if (error || !data) {
+      toast.error('İçerik bulunamadı veya erişim izniniz yok.', { id: toastId })
+      return
+    }
+
+    const { qs, summary, flashcards } = data.questions || {}
+    setQuestions(qs || [])
+    setSummary(summary || '')
+    setFlashcards(flashcards || [])
+    
+    setSourceName(data.pdf_name + " (Paylaşılan)")
+    setPhase('workspace')
+    setStudyMode('summary')
+    setCurrentSessionId(data.id)
+    toast.success('Paylaşılan çalışma alanı yüklendi!', { id: toastId })
+  }
 
   useEffect(() => {
     const handleRetry = (e) => {
@@ -257,9 +303,6 @@ export default function QuizGenerator() {
     window.addEventListener('ai-retry', handleRetry)
     return () => window.removeEventListener('ai-retry', handleRetry)
   }, [])
-  const [loadingProgress, setLoadingProgress] = useState(0)
-
-  const messagesEndRef = useRef(null)
 
   useEffect(() => {
     let interval;
@@ -486,11 +529,15 @@ ${bodyText}`
       setQuizFinished(false)
 
       // Oturumu kaydet
-      await saveQuizSession({
+      const savedResult = await saveQuizSession({
         pdf_name: finalSourceName,
         questions: { qs: extractedQs, summary: extractedSummary, flashcards: extractedFlashcards },
         ai_provider: isDemoMode ? 'demo' : provider,
       })
+      if (savedResult && savedResult.id) {
+        setCurrentSessionId(savedResult.id)
+      }
+      
       loadHistory()
       setPhase('workspace')
       setStudyMode('summary')
@@ -517,14 +564,44 @@ ${bodyText}`
                             uploadType === 'image' ? (imageFile?.name || 'Error Image') : 'Error Content'
       setSourceName(finalSourceName)
 
-      await saveQuizSession({
+      const savedResult = await saveQuizSession({
         pdf_name: finalSourceName,
         questions: { qs: mockQs, summary: mockSummary, flashcards: mockCards },
         ai_provider: 'demo',
       })
+      if (savedResult?.id) setCurrentSessionId(savedResult.id)
+      
       loadHistory()
       setPhase('workspace')
       setStudyMode('summary')
+    }
+  }
+
+  // --- SHARING ---
+  async function handleShareClick() {
+    if (!currentSessionId) {
+      toast.error('Önce bir çalışma alanı oluşturmalısınız.')
+      return
+    }
+    const id = toast.loading('Gruplarınız yükleniyor...')
+    const groups = await getMyGroups()
+    toast.dismiss(id)
+    if (groups.length === 0) {
+      toast.error('Henüz hiçbir gruba üye değilsiniz.')
+      return
+    }
+    setUserGroups(groups)
+    setShowShareModal(true)
+  }
+
+  async function confirmShare(groupId) {
+    const id = toast.loading('Paylaşılıyor...')
+    const { error } = await shareContent(groupId, 'quiz', currentSessionId, sourceName)
+    if (error) {
+      toast.error('Paylaşılamadı: ' + error.message, { id })
+    } else {
+      toast.success('Gruba başarıyla paylaşıldı!', { id })
+      setShowShareModal(false)
     }
   }
 
@@ -545,11 +622,10 @@ ${bodyText}`
       setQuizFinished(true)
       // Save quiz results (wrong questions and score metadata)
       await saveQuizResult({
-        pdf_name: sourceName || 'Untitled Document',
+        session_id: currentSessionId,
         score: correct ? score + 1 : score,
-        total_questions: questions.length,
-        wrong_questions: newWrong,
-        ai_provider: isDemoMode ? 'demo' : provider
+        total: questions.length,
+        answers: { wrong_questions: newWrong },
       })
     } else {
       setCurrentQ(c => c + 1)
@@ -571,6 +647,7 @@ ${bodyText}`
     setScore(0)
     setQuizFinished(false)
     setIsDemoMode(false)
+    setCurrentSessionId(null)
   }
 
   return (
@@ -579,6 +656,35 @@ ${bodyText}`
       {/* Glow Blobs */}
       <div className="glow-blob glow-blob-primary" />
       <div className="glow-blob glow-blob-secondary" />
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.8)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div className="card animate-fade-up" style={{ width: '400px', maxWidth: '90%' }}>
+            <h3>Hangi Gruba Paylaşılacak?</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+              Bu çalışma alanını arkadaşlarınızla paylaşın. Onlar da özetleri okuyup quiz'i kendi profilleri üzerinden çözebilecekler.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px', maxHeight: '300px', overflowY: 'auto' }}>
+              {userGroups.map(g => (
+                <button 
+                  key={g.id} 
+                  className="btn btn-secondary" 
+                  style={{ justifyContent: 'flex-start' }}
+                  onClick={() => confirmShare(g.id)}
+                >
+                  👥 {g.name}
+                </button>
+              ))}
+            </div>
+            <button className="btn btn-secondary" style={{ width: '100%' }} onClick={() => setShowShareModal(false)}>İptal</button>
+          </div>
+        </div>
+      )}
 
       <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px', maxWidth: '780px', position: 'relative', zIndex: 1 }}>
         
@@ -608,8 +714,6 @@ ${bodyText}`
                 <span>API Key algılanmadı — Çalışma alanı örnek bir doküman üzerinden **demo modunda** çalışacaktır.</span>
               </div>
             )}
-
-
 
             {/* Upload Type Tabs */}
             <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '8px' }}>
@@ -736,35 +840,42 @@ ${bodyText}`
         {phase === 'workspace' && (
           <div className="animate-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
-            {/* Navigation Tabs */}
-            <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+            {/* Sharing Bar */}
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button 
-                className="btn btn-ghost" 
-                style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: studyMode === 'summary' ? 'var(--bg-card)' : 'transparent', color: studyMode === 'summary' ? 'var(--text-primary)' : 'var(--text-secondary)', border: 'none' }}
+                className={`btn ${studyMode === 'summary' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setStudyMode('summary')}
+                style={{ flex: 1 }}
               >
-                📝 Akıllı Özet
+                📝 Özet
               </button>
               <button 
-                className="btn btn-ghost" 
-                style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: studyMode === 'flashcards' ? 'var(--bg-card)' : 'transparent', color: studyMode === 'flashcards' ? 'var(--text-primary)' : 'var(--text-secondary)', border: 'none' }}
+                className={`btn ${studyMode === 'flashcards' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setStudyMode('flashcards')}
+                style={{ flex: 1 }}
               >
-                🗂️ Flashcards
+                🃏 Kartlar
               </button>
               <button 
-                className="btn btn-ghost" 
-                style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: studyMode === 'quiz' ? 'var(--bg-card)' : 'transparent', color: studyMode === 'quiz' ? 'var(--text-primary)' : 'var(--text-secondary)', border: 'none' }}
+                className={`btn ${studyMode === 'quiz' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setStudyMode('quiz')}
+                style={{ flex: 1 }}
               >
-                🧠 Deneme Sınavı
+                ✅ Quiz
               </button>
               <button 
-                className="btn btn-ghost" 
-                style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: studyMode === 'chat' ? 'var(--bg-card)' : 'transparent', color: studyMode === 'chat' ? 'var(--text-primary)' : 'var(--text-secondary)', border: 'none' }}
+                className={`btn ${studyMode === 'chat' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setStudyMode('chat')}
+                style={{ flex: 1 }}
               >
-                🤖 AI Asistan
+                🤖 Asistan
+              </button>
+              <button 
+                className="btn btn-secondary"
+                onClick={handleShareClick}
+                style={{ background: 'var(--accent-indigo)', borderColor: 'var(--accent-indigo)', color: 'white' }}
+              >
+                🤝 Paylaş
               </button>
             </div>
 
