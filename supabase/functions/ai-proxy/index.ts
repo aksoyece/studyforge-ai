@@ -61,6 +61,7 @@ async function callOpenAI(system: string, message: string) {
 }
 
 async function callGemini(system: string, message: string) {
+  const isJson = system.includes("JSON")
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,
     {
@@ -72,6 +73,7 @@ async function callGemini(system: string, message: string) {
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 8192,
+          ...(isJson && { responseMimeType: "application/json" }),
         },
       }),
     }
