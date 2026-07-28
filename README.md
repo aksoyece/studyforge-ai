@@ -143,6 +143,13 @@ src/
 
 ---
 
+## ⚠️ Known Limitations & Architectural Decisions
+
+- **AI Rate Limits (429):** The application relies on the Google Gemini Free Tier, which imposes strict rate limits (e.g., Requests Per Minute/Day). To mitigate this, the client-side proxy (`aiProxy.js`) implements an **exponential retry-with-backoff** strategy. If the quota is completely exhausted, the UI gracefully catches the error and informs the user to wait, rather than crashing.
+- **Large PDF Handling:** Instead of truncating large documents (which discards the end of the book/paper) or building a costly full RAG pipeline, the Edge Function uses **Chunk Sampling**. It extracts equal-sized chunks from the beginning, middle, and end of the document to provide the AI with a representative context without exceeding token limits.
+
+---
+
 ## 📄 License
 
 MIT
