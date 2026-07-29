@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export async function invokeAI(provider, action, payload, maxRetries = 3) {
+export async function invokeAI(provider, action, payload, maxRetries = 4) {
   let attempt = 0;
 
   while (attempt < maxRetries) {
@@ -18,7 +18,8 @@ export async function invokeAI(provider, action, payload, maxRetries = 3) {
       // Rate limit (429) durumuysa ve deneme hakkımız varsa bekle ve tekrar dene
       if (detail.includes('429') && attempt < maxRetries - 1) {
         attempt++
-        const waitTime = Math.pow(2, attempt) * 1000 // 2s, 4s bekler
+        // 1. deneme: 5s, 2. deneme: 10s, 3. deneme: 20s (Toplam ~35 sn)
+        const waitTime = (5 * Math.pow(2, attempt - 1)) * 1000 
         console.warn(`⏳ Sunucu yoğun (429). Deneme ${attempt}: ${waitTime}ms bekleniyor...`)
         
         // UI'a bilgi ver (spinner altında göstermek için)
