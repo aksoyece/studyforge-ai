@@ -262,7 +262,7 @@ export default function CVAnalyzer() {
   const [cvText, setCvText] = useState('')
   const [jobTitle, setJobTitle] = useState('')
   const [jobDesc, setJobDesc] = useState('')
-  const provider = 'gemini'
+  const provider = 'claude'
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState([])

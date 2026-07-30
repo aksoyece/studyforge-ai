@@ -234,7 +234,7 @@ export default function QuizGenerator() {
   const [pdfText, setPdfText] = useState('')
   const [questionCount, setQuestionCount] = useState(5)
   const [difficulty, setDifficulty] = useState('medium')
-  const provider = 'gemini'
+  const provider = 'claude'
 
   // URL Params for Shared Content
   const location = useLocation()

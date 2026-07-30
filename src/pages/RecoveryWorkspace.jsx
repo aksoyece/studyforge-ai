@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { generateRecoveryQuiz_Claude } from '../lib/claude'
-import { generateRecoveryQuiz_OpenAI } from '../lib/openai'
 import { getMockRecoveryQuiz } from '../lib/mockAI'
 
 export default function RecoveryWorkspace() {
@@ -34,14 +33,8 @@ export default function RecoveryWorkspace() {
       setQuestions(qs)
     } catch (err) {
       console.error(err)
-      try {
-        const qs = await generateRecoveryQuiz_OpenAI(weakTopics)
-        setQuestions(qs)
-      } catch (err2) {
-        console.error(err2)
-        toast.error('Kurtarma quizi üretilirken hata oluştu. Örnek test başlatılıyor.')
-        setQuestions(getMockRecoveryQuiz())
-      }
+      toast.error('Kurtarma quizi üretilirken hata oluştu. Örnek test başlatılıyor.')
+      setQuestions(getMockRecoveryQuiz())
     } finally {
       setLoading(false)
     }
