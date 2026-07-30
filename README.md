@@ -2,7 +2,7 @@
 
 > AI-powered CV analyzer and PDF quiz generator built with React, Supabase, Claude & GPT-4o.
 
-**Live Demo:** [Deploy edilecek link]
+**Live Demo:** https://studyforge-ai-beryl.vercel.app
 
 ---
 
@@ -77,33 +77,9 @@ supabase functions deploy ai-proxy
 ```
 
 ### 3. Supabase — create tables
-Run this SQL in your Supabase SQL Editor:
+To set up your database schema and Row Level Security (RLS) policies, run the SQL files located in `supabase/migrations/` directly in your Supabase SQL Editor. 
 
-```sql
-create table cv_analyses (
-  id uuid default gen_random_uuid() primary key,
-  job_title text, job_description text, cv_text text,
-  analysis_result jsonb, ai_provider text,
-  created_at timestamptz default now()
-);
-
-create table quiz_sessions (
-  id uuid default gen_random_uuid() primary key,
-  pdf_name text, questions jsonb, ai_provider text,
-  created_at timestamptz default now()
-);
-
-create table quiz_results (
-  id uuid default gen_random_uuid() primary key,
-  session_id uuid references quiz_sessions,
-  score integer, total integer, answers jsonb,
-  completed_at timestamptz default now()
-);
-
-alter table cv_analyses disable row level security;
-alter table quiz_sessions disable row level security;
-alter table quiz_results disable row level security;
-```
+Start with `001_initial_schema.sql` and proceed in numerical order.
 
 ### 4. Run
 ```bash
@@ -123,7 +99,6 @@ src/
 ├── lib/
 │   ├── supabase.js       # DB client & helpers
 │   ├── claude.js         # Anthropic API wrapper
-│   ├── openai.js         # OpenAI API wrapper
 │   ├── pdfExtract.js     # PDF text extraction
 │   └── mockAI.js         # Demo mode responses
 └── index.css             # Design system
